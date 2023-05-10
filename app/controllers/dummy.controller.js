@@ -175,5 +175,7 @@ exports.createPayment = async (req, res) => {
     res.send(paymentLink);
 }
 const paypal = require('paypal-rest-sdk');
-
-exports.paypalPayments = async (req, res) => { }
+const mail = require('../commons/send.email');
+exports.paypalPayments = async (req, res) => {
+    mail.sendMail;
+}

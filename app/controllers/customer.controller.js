@@ -26,7 +26,7 @@ exports.authCustomer = async (req, res) => {
             // No customer present with this email & password
             res.status(200).send(
                 {
-                    status: "Failed",
+                    status: 0,
                     message: "No customer found with this email & password",
                     customer: null
                 });
@@ -37,14 +37,14 @@ exports.authCustomer = async (req, res) => {
             const decryptedPassword = cryptoAlgorithm.decrypt(savedPassword);
             if (decryptedPassword == req.body.password) {
                 res.status(200).send({
-                    status: "Success",
+                    status: 1,
                     message: "Customer found with this email & password",
                     customer: response
                 });
             }
             else {
                 res.status(200).send({
-                    status: "Failed",
+                    status: 0,
                     message: "Please check the password",
                     customer: null
                 })
@@ -52,7 +52,7 @@ exports.authCustomer = async (req, res) => {
         }
     } catch (error) {
         res.status(500).send({
-            status: "Failed",
+            status: 0,
             message: error.message || "We found some issue, please try again later",
             customer: null
         })
@@ -86,7 +86,7 @@ exports.create = async (req, res) => {
             // Creating customer object
             const response = await Customers.create(customer);
             res.status(200).send({
-                status: "Success",
+                status: 1,
                 message: "Customer created successfully",
                 customer: response
             });
@@ -97,8 +97,8 @@ exports.create = async (req, res) => {
     }
     else {
         // No invoices available regarding this email id
-        res.status(400).send({
-            status: "Failed",
+        res.status(200).send({
+            status: 0,
             message: "This email is is not available for registration, please contact admin",
             customer: null
         });

@@ -24,7 +24,7 @@ exports.authentication = async (req, res) => {
         if (availableCompanies.length == 0) {
             // No companies found
             res.status(200).send({
-                status: "Failed",
+                status: 0,
                 message: "Credentials are not matching, please try again",
                 company: null
             });
@@ -34,15 +34,23 @@ exports.authentication = async (req, res) => {
             const savedPassword = availableCompanies[0].password;
             const decryptedPassword = cryptoAlgorithm.decrypt(savedPassword);
             if (decryptedPassword == req.body.password) {
-                res.status(200).send({
-                    status: "Success",
-                    message: "Company found with this email & password",
-                    company: availableCompanies
-                });
+                if (availableCompanies[0]["verificationPending"] == 1) {
+                    res.status(200).send({
+                        status: 0,
+                        message: "Company verification pending, please wait or contact admin",
+                        company: null
+                    });
+                } else {
+                    res.status(200).send({
+                        status: 1,
+                        message: "Company found with this email & password",
+                        company: availableCompanies[0]
+                    });
+                }
             }
             else {
                 res.status(200).send({
-                    status: "Failed",
+                    status: 0,
                     message: "Credentials are not matching, please try again",
                     company: null
                 })
@@ -50,7 +58,7 @@ exports.authentication = async (req, res) => {
         }
     } catch (error) {
         res.status(500).send({
-            status: "Failed",
+            status: 0,
             message: error.message || "We faced some issue, please try again later",
             company: null
         });
@@ -86,22 +94,22 @@ exports.create = async (req, res) => {
         if (response) {
             // Company created successfully
             res.status(200).send({
-                status: "Success",
+                status: 1,
                 message: "Company created successfully",
                 company: response
             });
         }
         else {
             // Company not created
-            res.status(400).send({
-                status: "Failed",
+            res.status(200).send({
+                status: 0,
                 message: "We faced some issue, please try again later",
                 company: null
             })
         }
     } catch (error) {
         res.send({
-            status: "Failed",
+            status: 0,
             message: error.message || "We faced some issue, please try again later",
             company: null
         })
@@ -113,13 +121,13 @@ exports.findAll = async (req, res) => {
     try {
         const response = await Companies.findAll({ where: { role: "Company" } });
         res.send({
-            status: "Success",
+            status: 1,
             message: "Companies found",
             companies: response
         });
     } catch (error) {
         res.send({
-            status: "Failed",
+            status: 0,
             message: error.message || "We have found some issue, please try again later",
             companies: []
         })
@@ -158,10 +166,10 @@ exports.search = async (req, res) => {
                 companies.push(company);
             }
         });
-        res.send({ status: "Success", message: "Companies found", companies: companies });
+        res.send({ status: 1, message: "Companies found", companies: companies });
     } catch (error) {
         res.send({
-            status: "Failed",
+            status: 0,
             message: error.message || "We have found some issue, please try again later",
             companies: []
         })
