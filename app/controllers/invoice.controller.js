@@ -16,6 +16,12 @@ const Invoices = db.invoices;
 // Importing json sheet module
 const jsonSheet = require('../commons/extract.json.sheet');
 
+const AWS = require('aws-sdk');
+const multer = require("multer");
+const multerS3 = require('multer-s3');
+
+
+
 // Initializing dropbox class
 const dbx = new Dropbox({ accessToken: Config.dropboxToken, fetch: fetch });
 
@@ -35,9 +41,9 @@ exports.uploadCustomerSheet = async (req, res) => {
         // Uploaded file path in the dropbox
         const uploadFilePath = `/File Requests/customers/${uploadFileName}.xlsx`;
         // Uploading the file to the dropbox
-        const dbxResponse = await dbx.filesUpload({ path: uploadFilePath, contents: file });
+        // const dbxResponse = await dbx.filesUpload({ path: uploadFilePath, contents: file });
         // Sending response to the customer
-        res.status(200).send({ message: "File uploaded successfully", response: dbxResponse });
+        res.status(200).send({ message: "File uploaded successfully", response: "dbxResponse" });
     } catch (error) {
         // If some error happens
         res.status(500).send(error.message ?? "We have faced some issue, please try again  later");
@@ -173,4 +179,46 @@ exports.uploadInvoiceSheet = async (req, res) => {
     } catch (error) {
         res.send(error.message ?? "We have faced some issue, please try again later");
     }
+}
+
+
+let space = new AWS.S3({
+    //Get the endpoint from the DO website for your space
+    endpoint: AWS.Endpoint("nyc3.digitaloceanspaces.com"),
+    useAccelerateEndpoint: false,
+    accessKeyId: "DO00XZUXTDDGPVAC2V4F",
+    secretAccessKey: "uOxBk3Qksr5qoOjIqBlIggp7J4QHQ49lwoExBgoqsFM"
+});
+
+//Name of your bucket here
+const BucketName = "inboxx";
+
+// Upload invoice to the Digital Ocean Space
+exports.uploadToDigitOcean = async (req, res) => {
+
+    // Uploaded file path
+    const filePath = path.resolve(path.dirname('')) + "/resources/static/assets/uploads/" + req.file.filename;
+    // Reading the file from the app folder
+    const file = fs.readFileSync(filePath);
+
+
+    let uploadParameters = {
+        Bucket: BucketName,
+        Body: file,
+        ACL: 'public-read',
+        Key: req.file.filename
+    };
+
+    space.upload(uploadParameters, function (error, data) {
+        if (error) {
+            console.error(error);
+            res.send(error);
+            return;
+        }
+        res.sendStatus(200);
+    });
+
+    
+    // res.send(AWS.config)
+
 }

@@ -28,7 +28,7 @@ require("./app/routes/company.route")(app); // Company route
 
 
 // Defining port
-const PORT = process.env.PORT || 8045;
+const PORT = process.env.PORT || 8081;
 // Listenning to port
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);

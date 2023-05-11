@@ -39,7 +39,7 @@ exports.authCustomer = async (req, res) => {
                 res.status(200).send({
                     status: 1,
                     message: "Customer found with this email & password",
-                    customer: response
+                    customer: response[0]
                 });
             }
             else {
