@@ -4,4 +4,6 @@ module.exports = {
     invoice: "/api/v1/invoice", // Invoice endpoint 
     customer: "/api/v1/customer", // Customer endpoint
     company: "/api/v1/company", // Company endpoint
+    file: "/api/v1/file", // File endpoint
+    settings: "/api/v1/settings", // Settings endpoint
 };

@@ -15,6 +15,9 @@ module.exports = app => {
     router.post("/editInvoiceSheet", upload.single("file"), Invoice.editExcelSheet);
     router.post("/space", upload.single("file"), Invoice.uploadToDigitOcean);
 
+    /* Finding out all the invoices for a customer */
+    router.get("/:status", Invoice.findInvoices);
+
 
     // Using router with the endpoints
     app.use(Endpoints.invoice, router);

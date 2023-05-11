@@ -12,9 +12,14 @@ const path = require('path');
 const reader = require('xlsx');
 // Importing invoice module
 const db = require("../models");
+
 const Invoices = db.invoices;
+const Customers = db.customers;
+const Companies = db.companies;
+
 // Importing json sheet module
 const jsonSheet = require('../commons/extract.json.sheet');
+
 
 const AWS = require('aws-sdk');
 const multer = require("multer");
@@ -152,13 +157,14 @@ exports.uploadInvoiceSheet = async (req, res) => {
                     invoiceCurrency: excelData["Invoice Currency"] == "undefined" ? undefined : excelData["Invoice Currency"],
                     dueDate: excelData["Due Date"] == "undefined" ? null : Date(excelData["Due Date"]),
                     invoiceSummary: excelData["Invoice Summary"] == "undefined" ? null : excelData["Invoice Summary"],
-                    billedToZipCode: excelData["Billed To Zip Code"] == "undefined" ? null : excelData["Billed To Zip Code"]
+                    billedToZipCode: excelData["Billed To Zip Code"] == "undefined" ? null : excelData["Billed To Zip Code"],
+                    paymentStatus: excelData["Payment Status"] == "undefined" ? null : excelData["Payment Status"]
                 };
                 // Pushing all data into a single array
                 allExcelFormattedData.push(formattedJson);
                 try {
                     // Check this particular invoice id present in the database or not
-                    let availableInvoices = await Invoices.findAll({ where: { invoiceNumber: formattedJson.invoiceNumber } });
+                    let availableInvoices = await Invoices.findAll({ where: { invoiceNumber: formattedJson.invoiceNumber, companyId: req.body.companyId } });
                     if (availableInvoices.length == 1) {
                         // Invoices available to update
                         await Invoices.update(formattedJson, {
@@ -180,6 +186,72 @@ exports.uploadInvoiceSheet = async (req, res) => {
         res.send(error.message ?? "We have faced some issue, please try again later");
     }
 }
+
+
+/* Finding out all the due invoices available for a customer from a single compnay */
+exports.findInvoices = async (req, res) => {
+    /* Validating the customer id is sent through the req query or not */
+    if (!req.query.id) {
+        res.status(400).send({
+            status: 0,
+            message: "Customer Id is required",
+            invoices: null
+        });
+    }
+    /* Customer id sent in query */
+    const id = req.query.id;
+    const paymentStatus = req.params.status.toLowerCase();
+    console.log(paymentStatus);
+    try {
+        /* Finding out the customer email associated with this id */
+        const customer = await Customers.findByPk(id);
+        if (customer) {
+            /* Finding out all the invoices from invoice table */
+            const invoices = await Invoices.findAll({ where: { billedToEmailID: customer.email } });
+            /* Finding out all the companies from companies table */
+            const companies = await Companies.findAll({ where: { role: "Company" } });
+
+            /* Initializing an array for the companies including the invoices */
+            let invoicesForCustomer = [];
+            companies.forEach(company => {
+                /* Initializing an array for storing the temp list*/
+                let tempArray = [];
+                invoices.forEach(invoice => {
+                    /* Current indexed invoice */
+                    if (company.id == invoice.companyId && invoice.paymentStatus.toLowerCase() == paymentStatus) {
+                        /* When company id matched with invoice company id */
+                        tempArray.push(invoice);
+                    }
+                });
+                /* Adding temp array in the primary array */
+                invoicesForCustomer.push({
+                    company: company,
+                    invoices: tempArray
+                });
+            });
+
+            /*  */
+
+            res.send(invoicesForCustomer);
+
+        }
+        else {
+            res.send({
+                status: 0,
+                message: `Customer not found with id=${id}`,
+                invoices: null
+            });
+        }
+    } catch (error) {
+        res.send(error);
+    }
+}
+
+
+
+
+
+
 
 
 let space = new AWS.S3({
@@ -218,7 +290,7 @@ exports.uploadToDigitOcean = async (req, res) => {
         res.sendStatus(200);
     });
 
-    
+
     // res.send(AWS.config)
 
 }

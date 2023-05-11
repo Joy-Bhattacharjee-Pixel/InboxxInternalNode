@@ -25,10 +25,13 @@ require("./app/routes/dummy.route")(app); // Customer route
 require("./app/routes/customer.route")(app); // Customer route
 require("./app/routes/invoice.route")(app); // Invoice route
 require("./app/routes/company.route")(app); // Company route
+require("./app/routes/setting.route")(app); // Settings route
+require("./app/routes/file.routes")(app); // File route
+
 
 
 // Defining port
-const PORT = process.env.PORT || 8045;
+const PORT = process.env.PORT || 8081;
 // Listenning to port
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);

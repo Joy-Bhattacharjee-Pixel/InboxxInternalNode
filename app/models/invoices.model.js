@@ -56,6 +56,10 @@ module.exports = (sequelize, DataTypes) => {
         billedToZipCode: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        paymentStatus: {
+            type: DataTypes.STRING,
+            allowNull: false
         }
     });
     return Invoices;
