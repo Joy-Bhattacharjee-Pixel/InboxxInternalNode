@@ -67,41 +67,54 @@ exports.create = async (req, res) => {
         // If some errors present
         res.status(400).json(errors);
     }
-    // Check if this email id is present in the invoice table or not
-    let availableInvoices = await Invoices.findAll({ where: { billedToEmailID: req.body.email } });
+    // Check if this email address & phone is already present in the customer table or not
+    let availableCustomersWithEmail = await Customers.findAll({ where: { email: req.body.email } });
+    let availableCustomersWithPhone = await Customers.findAll({ where: { email: req.body.phone } });
 
-    if (availableInvoices.length != 0) {
-        // Invoices available regarding this email id
-        // Encrypting the password
-        let encryptedPassword = cryptoAlgorithm.encrypt(req.body.password);
-        // Create customer object
-        const customer = {
-            email: req.body.email,
-            password: encryptedPassword,
-            name: req.body.name,
-            phone: req.body.phone,
-            address: req.body.address
+    if (availableCustomersWithEmail.length == 0 && availableCustomersWithPhone.length == 0) {
+        // Check if this email id is present in the invoice table or not
+        let availableInvoices = await Invoices.findAll({ where: { billedToEmailID: req.body.email } });
+
+        if (availableInvoices.length != 0) {
+            // Invoices available regarding this email id
+            // Encrypting the password
+            let encryptedPassword = cryptoAlgorithm.encrypt(req.body.password);
+            // Create customer object
+            const customer = {
+                email: req.body.email,
+                password: encryptedPassword,
+                name: req.body.name,
+                phone: req.body.phone,
+                address: req.body.address
+            }
+            try {
+                // Creating customer object
+                const response = await Customers.create(customer);
+                res.status(200).send({
+                    status: 1,
+                    message: "Customer created successfully",
+                    customer: response
+                });
+            } catch (error) {
+                // Some error happens
+                res.status(500).send(error.message || "We have faced some issues, please try again later");
+            }
         }
-        try {
-            // Creating customer object
-            const response = await Customers.create(customer);
+        else {
+            // No invoices available regarding this email id
             res.status(200).send({
-                status: 1,
-                message: "Customer created successfully",
-                customer: response
+                status: 0,
+                message: "This email is is not available for registration, please contact admin",
+                customer: null
             });
-        } catch (error) {
-            // Some error happens
-            res.status(500).send(error.message || "We have faced some issues, please try again later");
         }
     }
     else {
-        // No invoices available regarding this email id
-        res.status(200).send({
+        res.send({
             status: 0,
-            message: "This email is is not available for registration, please contact admin",
+            message: "This email id or phone number is already registered",
             customer: null
-        });
+        })
     }
 }
 
