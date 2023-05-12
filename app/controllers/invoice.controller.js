@@ -243,7 +243,7 @@ exports.findInvoices = async (req, res) => {
 }
 
 /* Finding out all the invoices rasied from a particular company */
-exports.findAll = async (req, res) => {
+exports.allInvoices = async (req, res) => {
     /* Validating company id */
     if (!req.query.id) {
         /* When company id is null */

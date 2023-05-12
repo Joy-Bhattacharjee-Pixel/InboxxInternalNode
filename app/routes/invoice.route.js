@@ -20,7 +20,7 @@ module.exports = app => {
     router.get("/:status", Invoice.findInvoices);
 
     /* Finding out all the invoices raised by a company - Admin usage */
-    router.get("/all", Invoice.findAll);
+    router.get("/all/admin", Invoice.allInvoices);
 
     // Using router with the endpoints
     app.use(Endpoints.invoice, router);

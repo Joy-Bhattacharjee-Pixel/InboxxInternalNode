@@ -4,7 +4,6 @@ const Bulletins = db.bulletins;
 /* Importing company module */
 const Companies = db.companies;
 
-
 const commonText = require('../commons/common.text');
 
 /* Fetching all bulletins from the server */
@@ -47,7 +46,7 @@ exports.getBulletins = async (req, res) => {
     const id = req.query.id;
     try {
         /* Finding out all the bulletins for this customer */
-        const response = await Bulletins.findByPk(id);
+        const response = await Bulletins.findAll();
         res.send({
             status: 1,
             message: `All the bulletins for customer-${id}`,
@@ -89,10 +88,10 @@ exports.createBulletins = async (req, res) => {
         /* Companies found with this id */
         try {
             /* Fetching all the available bulletins from this company */
-            const bulletins = await Bulletins.findAll({ where: { company: id } });
+            const bulletins = await Bulletins.create(req.body);
             res.send({
                 status: 1,
-                message: "Bulletins found",
+                message: "Bulletin Created",
                 bulletins: bulletins
             });
         } catch (error) {
