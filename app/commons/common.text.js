@@ -1,0 +1,1 @@
+exports.errorText = "We have faced some issue, please try again later";

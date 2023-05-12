@@ -19,6 +19,8 @@ db.invoices = require("./invoices.model.js")(sequelize, Sequelize); // Invoices 
 db.customers = require('./customer.model.js')(sequelize, Sequelize); // Customer model
 db.companies = require('./company.model.js')(sequelize, Sequelize); // Company model
 db.settings = require('./setting.model.js')(sequelize, Sequelize); // Settings model
+db.bulletins = require('./bulletin.model.js')(sequelize, Sequelize); // Bulletin model
+
 
 
 // Exporting db

@@ -6,4 +6,5 @@ module.exports = {
     company: "/api/v1/company", // Company endpoint
     file: "/api/v1/file", // File endpoint
     settings: "/api/v1/settings", // Settings endpoint
+    bulletins: "/api/v1/bulletins", // Bulletins endpoint
 };

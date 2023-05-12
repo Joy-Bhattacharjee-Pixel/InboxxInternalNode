@@ -187,7 +187,6 @@ exports.uploadInvoiceSheet = async (req, res) => {
     }
 }
 
-
 /* Finding out all the due invoices available for a customer from a single compnay */
 exports.findInvoices = async (req, res) => {
     /* Validating the customer id is sent through the req query or not */
@@ -229,11 +228,7 @@ exports.findInvoices = async (req, res) => {
                     invoices: tempArray
                 });
             });
-
-            /*  */
-
             res.send(invoicesForCustomer);
-
         }
         else {
             res.send({
@@ -244,6 +239,35 @@ exports.findInvoices = async (req, res) => {
         }
     } catch (error) {
         res.send(error);
+    }
+}
+
+/* Finding out all the invoices rasied from a particular company */
+exports.findAll = async (req, res) => {
+    /* Validating company id */
+    if (!req.query.id) {
+        /* When company id is null */
+        res.status(400).send({
+            status: 0,
+            message: "Company Id is required",
+            invoices: null
+        })
+    }
+    /* Trying to fetch all the invoices from this company based on query id */
+    try {
+        const invoices = await Invoices.findAll({ where: { companyId: req.query.id } });
+        res.send({
+            status: 1,
+            message: `All invoices from company ${req.query.id}`,
+            invoices: invoices
+        });
+    } catch (error) {
+        /* When some error occurs */
+        res.send({
+            status: 0,
+            message: error.message || "We have faced some issue, please try again later",
+            invoices: null
+        });
     }
 }
 
