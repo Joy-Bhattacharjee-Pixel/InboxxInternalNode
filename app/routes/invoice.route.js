@@ -19,6 +19,12 @@ module.exports = app => {
     /* Finding out all the invoices for a customer */
     router.get("/:status", Invoice.findInvoices);
 
+    /* Companies sent invoices to this customer */
+    router.post("/companies/sent", Invoice.companiesSentInvoices);
+
+    /* All the invoices sent to customer based on company id */
+    router.post("/sent/all", Invoice.invoices);
+
     /* Finding out all the invoices raised by a company - Admin usage */
     router.get("/all/admin", Invoice.allInvoices);
 

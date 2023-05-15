@@ -14,6 +14,7 @@ const reader = require('xlsx');
 const db = require("../models");
 /* Importing query types */
 const { QueryTypes } = require('sequelize');
+const Sequelize = db.sequelize;
 
 
 const Invoices = db.invoices;
@@ -177,14 +178,14 @@ exports.uploadInvoiceSheet = async (req, res) => {
                     else {
                         // No invoices available to update
                         // Creating the invoice data in the invoice table
-                       const response =  await Invoices.create(formattedJson);
+                        await Invoices.create(formattedJson);
                     }
                 } catch (error) {
                     console.log(error.message || "Error occurs");
                 }
             }
         });
-        res.status(200).send(response);
+        res.status(200).send(allExcelFormattedData);
     } catch (error) {
         res.send(error.message ?? "We have faced some issue, please try again later");
     }
@@ -274,10 +275,10 @@ exports.allInvoices = async (req, res) => {
     }
 }
 
-/* Finding out all the invoices available for a customer from a single compnay - UPDATED */
-exports.allInvoicesUpdated = async (req, res) => {
+/* Finding out all the companies sent invoices available for a customer from a single compnay - UPDATED */
+exports.companiesSentInvoices = async (req, res) => {
     /* Validating customer id */
-    if (!req.query.id) {
+    if (!req.body.customerId) {
         /* When customer id is null */
         res.status(400).send({
             status: 0,
@@ -285,18 +286,114 @@ exports.allInvoicesUpdated = async (req, res) => {
             invoices: null
         })
     }
-    /* Fetching companies list from invoice table which have sent me invoices */
-    try {
-        /* Raw SQL query for searching distinct companies from invoice table */
-        const companiesSentInvoices = "SELECT customers.id, customers.name, customers.email, customers.image FROM customers RIGHT JOIN transactions ON transactions.customer = customers.id";
-        // Performing raw SQL query
-        const customerDetails = await db.sequelize.query(customerQuery, { type: QueryTypes.SELECT });
-
-    } catch (error) {
-
+    if (req.body.paid == null) {
+        /* When the payment status is null */
+        res.status(400).send({
+            status: 0,
+            message: "Payment status - paid is required",
+            invoices: null
+        })
+    }
+    /* Fetching customer details from customer table */
+    const customer = await Customers.findByPk(req.body.customerId);
+    if (!customer) {
+        /* If customer not found */
+        res.send({
+            status: 0,
+            message: "No customer found with this id",
+            companies: null
+        })
+    }
+    else {
+        /* Paid or Unpaid invoices */
+        let paid = req.body.paid;
+        /* Found customer email */
+        const email = customer.email;
+        /* Fetching companies list from invoice table which have sent me invoices */
+        try {
+            /* Raw SQL query for searching distinct companies from invoice table */
+            const companiesSentInvoicesQuery = `SELECT DISTINCT companyId FROM invoices where billedToEmailID='${email}' AND paid = ${paid}`;
+            // Performing raw SQL query
+            const companiesSentInvoices = await db.sequelize.query(companiesSentInvoicesQuery, { type: QueryTypes.SELECT });
+            /* Companies sent invoices list */
+            /* All the company  */
+            let companyIds = [];
+            companiesSentInvoices.forEach(company => {
+                companyIds.push(company.companyId);
+            });
+            const response = await Companies.findAll({
+                where:
+                    Sequelize.or({ id: companyIds })
+            });
+            res.send({
+                status: 1,
+                message: "Companies sent invoices",
+                companies: response
+            });
+        } catch (error) {
+            res.send({
+                status: 0,
+                message: error.message,
+                companies: null
+            });
+        }
     }
 }
 
+/* List of invoices sent from a single company */
+exports.invoices = async (req, res) => {
+    /* Validating company id & customer id */
+    if (!req.body.companyId) {
+        /* Company id is missing from body */
+        res.send({
+            status: 0,
+            message: "Company Id is required in body",
+            invoices: null
+        })
+    }
+    if (!req.body.customerId) {
+        /* Customer id is missing from the body */
+        res.send({
+            status: 0,
+            message: "Customer id is required in body",
+            invoices: null
+        })
+    }
+    if (req.body.paid == null) {
+        /* When the payment status is null */
+        res.status(400).send({
+            status: 0,
+            message: "Payment status - paid is required",
+            invoices: null
+        })
+    }
+    /* Fetching customer details from customer table */
+    const customer = await Customers.findByPk(req.body.customerId);
+    if (!customer) {
+        /* If customer not found */
+        res.send({
+            status: 0,
+            message: "No customer found with this id",
+            invoices: null
+        })
+    }
+    else {
+        /* Paid or Unpaid invoices */
+        let paid = req.body.paid;
+        /* Found customer email */
+        const email = customer.email;
+
+        try {
+            const response = await Invoices.findAll({
+                where: { companyId: req.body.companyId, billedToEmailID: email, paid: paid }
+            });
+            res.send(response);
+        } catch (error) {
+            res.send(error)
+        }
+    }
+
+}
 
 
 

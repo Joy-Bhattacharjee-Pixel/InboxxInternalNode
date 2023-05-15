@@ -27,5 +27,8 @@ db.bulletins = require('./bulletin.model.js')(sequelize, Sequelize); // Bulletin
 
 db.companies.hasMany(db.bulletins, { as: "bulletins" });
 db.bulletins.belongsTo(db.companies, { foreignKey: "companyId", as: "company" })
+
+// db.companies.hasMany(db.invoices, {as :"invoices"});
+// db.invoices.belongsTo(db.companies, {foreignKey: "companyId", as: "company"});
 // Exporting db
 module.exports = db;
