@@ -3,6 +3,11 @@ const db = require("../models");
 const Bulletins = db.bulletins;
 /* Importing company module */
 const Companies = db.companies;
+/* Importing customer module */
+const Customer = db.customers;
+/* Importing query types */
+const { QueryTypes } = require('sequelize');
+const Sequelize = db.sequelize;
 
 const commonText = require('../commons/common.text');
 
@@ -59,6 +64,58 @@ exports.getBulletins = async (req, res) => {
             message: error.message || commonText.errorText,
             bulletins: null
         })
+    }
+}
+
+/* Fetching bulletins for the particular customer - UPDATED */
+exports.getBulletinsUpdate = async (req, res) => {
+    /* Validating customer id */
+    if (!req.query.id) {
+        res.send({
+            status: 0,
+            message: "Customer id is required",
+            bulletins: null
+        });
+    }
+    /* Fetching customer details from customer table */
+    const customer = await Customer.findByPk(req.query.id);
+    if (!customer) {
+        /* If customer not found */
+        res.send({
+            status: 0,
+            message: "No customer found with this id",
+            bulletins: null
+        })
+    }
+    else {
+        /* Found customer email */
+        const email = customer.email;
+        /* Raw SQL query for searching distinct companies from invoice table based on customer email*/
+        const companiesSentInvoicesQuery = `SELECT DISTINCT companyId FROM invoices where billedToEmailID = '${email}'`;
+        /* Performing SQL query */
+        const companiesSentInvoices = await db.sequelize.query(companiesSentInvoicesQuery, { type: QueryTypes.SELECT });
+        if (companiesSentInvoices.length == 0) {
+            /* When there is no company associated with this email */
+            res.send({
+                status: 1,
+                message: "All Bulletins",
+                bulletins: []
+            })
+        }
+        else {
+            /* All the company  */
+            let companyIds = [];
+            companiesSentInvoices.forEach(company => {
+                companyIds.push(company.companyId);
+            });
+            const response = await Bulletins.findAll({
+                include: ["company"],
+                where: Sequelize.or(
+                    { id: companyIds })
+            });
+            res.send(response);
+        }
+
     }
 }
 

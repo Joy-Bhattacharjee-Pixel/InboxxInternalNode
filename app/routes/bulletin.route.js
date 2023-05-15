@@ -7,7 +7,8 @@ module.exports = app => {
     router.get("/all", bulletins.getAllbulletins);
 
     /* Getting bulletins for a single customer based on customer id */
-    router.get("/", bulletins.getBulletins);
+    router.get("/", bulletins.getBulletinsUpdate);
+    
 
     /* Adding new bulletins data */
     router.post("/create", bulletins.createBulletins);

@@ -24,5 +24,8 @@ db.bulletins = require('./bulletin.model.js')(sequelize, Sequelize); // Bulletin
 /* Using email as foreign key with the invoice table to customer table */
 // db.invoices.hasOne(db.customers, { foreignKey: "billedToEmailID" });
 // db.invoices.belongsTo(db.customers);
+
+db.companies.hasMany(db.bulletins, { as: "bulletins" });
+db.bulletins.belongsTo(db.companies, { foreignKey: "companyId", as: "company" })
 // Exporting db
 module.exports = db;

@@ -12,6 +12,9 @@ const path = require('path');
 const reader = require('xlsx');
 // Importing invoice module
 const db = require("../models");
+/* Importing query types */
+const { QueryTypes } = require('sequelize');
+
 
 const Invoices = db.invoices;
 const Customers = db.customers;

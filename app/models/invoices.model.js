@@ -31,7 +31,11 @@ module.exports = (sequelize, DataTypes) => {
         },
         billedToEmailID: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
+            // references: {
+            //     model: Customers,
+            //     key: "email"
+            // }
         },
         billedToPhone: {
             type: DataTypes.STRING,

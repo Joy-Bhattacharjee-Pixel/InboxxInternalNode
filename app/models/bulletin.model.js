@@ -1,4 +1,5 @@
 const { DataTypes } = require("sequelize");
+const db = require("../models");
 
 module.exports = (sequelize, _) => {
     const Bulletins = sequelize.define("bulletins", {
@@ -14,9 +15,13 @@ module.exports = (sequelize, _) => {
             type: DataTypes.STRING,
             allowNull: false
         },
-        company: {
+        companyId: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
+            references: {
+                model: "companies",
+                key: "id"
+            }
         }
     });
     return Bulletins;
