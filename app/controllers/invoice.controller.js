@@ -271,6 +271,29 @@ exports.allInvoices = async (req, res) => {
     }
 }
 
+/* Finding out all the invoices available for a customer from a single compnay - UPDATED */
+exports.allInvoicesUpdated = async (req, res) => {
+    /* Validating customer id */
+    if (!req.query.id) {
+        /* When customer id is null */
+        res.status(400).send({
+            status: 0,
+            message: "Customer Id is required",
+            invoices: null
+        })
+    }
+    /* Fetching companies list from invoice table which have sent me invoices */
+    try {
+        /* Raw SQL query for searching distinct companies from invoice table */
+        const companiesSentInvoices = "SELECT customers.id, customers.name, customers.email, customers.image FROM customers RIGHT JOIN transactions ON transactions.customer = customers.id";
+        // Performing raw SQL query
+        const customerDetails = await db.sequelize.query(customerQuery, { type: QueryTypes.SELECT });
+
+    } catch (error) {
+
+    }
+}
+
 
 
 

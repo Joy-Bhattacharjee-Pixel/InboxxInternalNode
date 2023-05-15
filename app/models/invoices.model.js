@@ -1,4 +1,8 @@
 const { DataTypes } = require("sequelize");
+
+// Importing invoice module
+const db = require("../models");
+Customers = db.customers;
 module.exports = (sequelize, DataTypes) => {
     const Invoices = sequelize.define("invoices", {
         enabled: {
@@ -57,10 +61,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
-        paymentStatus: {
-            type: DataTypes.STRING,
-            allowNull: false
+        paid: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: 0
         }
     });
+
     return Invoices;
 };

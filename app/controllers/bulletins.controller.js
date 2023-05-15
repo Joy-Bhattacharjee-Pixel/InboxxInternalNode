@@ -120,7 +120,7 @@ exports.updateBulletin = async (req, res) => {
     const body = req.body;
     try {
         /* Updating a bulletin based on bulletin id */
-        const response = await Bulletins.update(body, { where: { company: req.body.id } });
+        await Bulletins.update(body, { where: { company: req.body.id } });
         res.send({
             status: 1,
             message: "Bulletin updated successfully",
