@@ -23,7 +23,7 @@ exports.getAllbulletins = async (req, res) => {
     }
     try {
         /* Finding all bulletins from this particular company with company id in query */
-        const response = await Bulletins.findAll({ where: { company: req.query.id } });
+        const response = await Bulletins.findAll({ where: { companyId: req.query.id } });
         res.send({
             status: 1,
             message: "All available bulletins",
