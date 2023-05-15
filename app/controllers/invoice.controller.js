@@ -161,7 +161,7 @@ exports.uploadInvoiceSheet = async (req, res) => {
                     dueDate: excelData["Due Date"] == "undefined" ? null : Date(excelData["Due Date"]),
                     invoiceSummary: excelData["Invoice Summary"] == "undefined" ? null : excelData["Invoice Summary"],
                     billedToZipCode: excelData["Billed To Zip Code"] == "undefined" ? null : excelData["Billed To Zip Code"],
-                    paymentStatus: excelData["Payment Status"] == "undefined" ? null : excelData["Payment Status"]
+                    // paymentStatus: excelData["Payment Status"] == "undefined" ? null : excelData["Payment Status"]
                 };
                 // Pushing all data into a single array
                 allExcelFormattedData.push(formattedJson);
@@ -177,14 +177,14 @@ exports.uploadInvoiceSheet = async (req, res) => {
                     else {
                         // No invoices available to update
                         // Creating the invoice data in the invoice table
-                        await Invoices.create(formattedJson);
+                       const response =  await Invoices.create(formattedJson);
                     }
                 } catch (error) {
                     console.log(error.message || "Error occurs");
                 }
             }
         });
-        res.status(200).send(allExcelFormattedData);
+        res.status(200).send(response);
     } catch (error) {
         res.send(error.message ?? "We have faced some issue, please try again later");
     }

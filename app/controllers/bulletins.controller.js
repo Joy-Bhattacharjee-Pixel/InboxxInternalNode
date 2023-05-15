@@ -21,14 +21,31 @@ exports.getAllbulletins = async (req, res) => {
             bulletins: null
         });
     }
+    /* Keyword send by company to search bulletins */
+    const keyword = req.query.keyword;
     try {
         /* Finding all bulletins from this particular company with company id in query */
         const response = await Bulletins.findAll({ where: { companyId: req.query.id } });
-        res.send({
-            status: 1,
-            message: "All available bulletins",
-            bulletins: response
-        });
+        if (keyword) {
+            /* When keyword is available */
+            let searchedBulletins = [];
+            response.forEach(bulletin => {
+                if (bulletin.title.toLowerCase().includes(keyword.toLowerCase())) {
+                    searchedBulletins.push(bulletin);
+                }
+            });
+            res.send({
+                status: 1,
+                message: "All available bulletins",
+                bulletins: searchedBulletins
+            });
+        } else {
+            res.send({
+                status: 1,
+                message: "All available bulletins",
+                bulletins: response
+            });
+        }
     } catch (error) {
         res.send({
             status: 0,
@@ -113,7 +130,11 @@ exports.getBulletinsUpdate = async (req, res) => {
                 where: Sequelize.or(
                     { id: companyIds })
             });
-            res.send(response);
+            res.send({
+                status: 1,
+                message: "Bulletins Found",
+                bulletins: response
+            });
         }
 
     }
@@ -191,3 +212,4 @@ exports.updateBulletin = async (req, res) => {
         })
     }
 }
+
