@@ -28,6 +28,10 @@ module.exports = app => {
     /* Finding out all the invoices raised by a company - Admin usage */
     router.get("/all/admin", Invoice.allInvoices);
 
+    /* Updating a single invoice raised by a company - Admin usage */
+    router.put("/all/admin", Invoice.updateAllInvoices);
+
+
     // Using router with the endpoints
     app.use(Endpoints.invoice, router);
 }

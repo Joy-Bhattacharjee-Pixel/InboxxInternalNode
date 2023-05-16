@@ -395,6 +395,50 @@ exports.invoices = async (req, res) => {
 
 }
 
+/* Update all invoices */
+exports.updateAllInvoices = async (req, res) => {
+    /* Validating company id */
+    if (!req.body.companyId) {
+        /* When company id is null */
+        res.status(400).send({
+            status: 0,
+            message: "Company Id is required in body",
+            invoice: null
+        })
+    }
+    /* Validating invoice id */
+    if (!req.body.invoiceId) {
+        /* When invoice id is null */
+        res.status(400).send({
+            status: 0,
+            message: "Invoice Id is required in body",
+            invoice: null
+        })
+    }
+    /* Creating a body object */
+    const body = {
+        invoiceSummary: req.body.invoiceSummary,
+        invoiceValue: req.body.invoiceValue,
+        paid: req.body.paid
+    }
+    try {
+        /* Updating invoice based on invoice id in the invoice table */
+        await Invoices.update(body, { where: { id: req.body.invoiceId } });
+        res.send({
+            status: 1,
+            message: "Invoice updated successfully",
+            invoice: req.body
+        });
+    } catch (error) {
+        res.send({
+            status: 0,
+            message: error.message,
+            invoice: null
+        })
+    }
+
+}
+
 
 
 
