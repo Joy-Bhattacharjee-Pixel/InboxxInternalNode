@@ -20,15 +20,16 @@ db.customers = require('./customer.model.js')(sequelize, Sequelize); // Customer
 db.companies = require('./company.model.js')(sequelize, Sequelize); // Company model
 db.settings = require('./setting.model.js')(sequelize, Sequelize); // Settings model
 db.bulletins = require('./bulletin.model.js')(sequelize, Sequelize); // Bulletin model
+db.paymentKeys = require('./payment.key.model.js')(sequelize, Sequelize); // Payment Keys model
 
-/* Using email as foreign key with the invoice table to customer table */
-// db.invoices.hasOne(db.customers, { foreignKey: "billedToEmailID" });
-// db.invoices.belongsTo(db.customers);
 
+/* Establishing a foreign key relation with bulletins and compaies */
 db.companies.hasMany(db.bulletins, { as: "bulletins" });
 db.bulletins.belongsTo(db.companies, { foreignKey: "companyId", as: "company" })
 
-// db.companies.hasMany(db.invoices, {as :"invoices"});
-// db.invoices.belongsTo(db.companies, {foreignKey: "companyId", as: "company"});
+/* Establishing a foreign key relation with payment keys and companies */
+db.companies.hasMany(db.paymentKeys, {as: "paymentKey"});
+db.paymentKeys.belongsTo(db.companies, { foreignKey: "companyId", as: "company" });
+
 // Exporting db
 module.exports = db;

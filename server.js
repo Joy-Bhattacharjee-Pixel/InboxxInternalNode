@@ -27,7 +27,9 @@ require("./app/routes/invoice.route")(app); // Invoice route
 require("./app/routes/company.route")(app); // Company route
 require("./app/routes/setting.route")(app); // Settings route
 require("./app/routes/file.routes")(app); // File route
-require("./app/routes/bulletin.route")(app); // File route
+require("./app/routes/bulletin.route")(app); // Bulletin route
+require("./app/routes/payment.route")(app); // Bulletin route
+
 
 
 

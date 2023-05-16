@@ -155,7 +155,7 @@ exports.uploadInvoiceSheet = async (req, res) => {
                     invoiceType: excelData["Invoice Type"] == "undefined" ? null : excelData["Invoice Type"],
                     billedToName: excelData["Billed To Name"] == "undefined" ? null : excelData["Billed To Name"],
                     billedToEmailID: excelData["Billed to Email ID"] == "undefined" ? null : excelData["Billed to Email ID"],
-                    billedToPhone: excelData["Billed To Phone"] == "undefined" ? null : excelData["Billed to Email ID"],
+                    billedToPhone: excelData["Billed To Phone"] == "undefined" ? null : excelData["Billed To Phone"],
                     billedToCountryCode: excelData["Billed to Country Code"] == "undefined" ? null : excelData["Billed to Country Code"],
                     invoiceValue: excelData["Invoice Value"] == "undefined" ? null : excelData["Invoice Value"],
                     invoiceCurrency: excelData["Invoice Currency"] == "undefined" ? undefined : excelData["Invoice Currency"],

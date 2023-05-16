@@ -3,6 +3,8 @@ const { check, validationResult } = require('express-validator');
 const db = require("../models");
 // Importing company module
 const Companies = db.companies;
+const PaymentKeys = db.paymentKeys;
+
 // Importing crypto module
 const cryptoAlgorithm = require('../commons/crypto.algo');
 
@@ -91,6 +93,8 @@ exports.create = async (req, res) => {
     try {
         // Creating new company 
         const response = await Companies.create(companyObject);
+        /* Creating payment methods for this company */
+        await PaymentKeys.create({ companyId: response.id })
         if (response) {
             // Company created successfully
             res.status(200).send({

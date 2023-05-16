@@ -31,7 +31,7 @@ module.exports = app => {
     /* Updating a single invoice raised by a company - Admin usage */
     router.put("/all/admin", Invoice.updateAllInvoices);
 
-
+    
     // Using router with the endpoints
     app.use(Endpoints.invoice, router);
 }
