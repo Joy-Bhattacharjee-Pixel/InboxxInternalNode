@@ -67,7 +67,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         paid: {
             type: DataTypes.BOOLEAN,
-            defaultValue: 0
+            defaultValue: false
         }
     });
 

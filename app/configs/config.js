@@ -5,7 +5,8 @@
 //   PASSWORD: "",
 //   DB: "inboxx",
 //   dialect: "mysql",
-//   dropboxToken: "sl.BcWxzbcRC_i-cV9aJwD2PG3KF1rfj8RfuqAd1KDrdE-ofilB3aPTEVj79mY4flMSt8CNTm7PYEZ1QBRdaT-1uEZDDJotZKzAu-l5uq7_kyuaUD_XNpOp0cZHig0lOpigh3eOWqDbmmsm"
+//   dropboxToken: "sl.BcWxzbcRC_i-cV9aJwD2PG3KF1rfj8RfuqAd1KDrdE-ofilB3aPTEVj79mY4flMSt8CNTm7PYEZ1QBRdaT-1uEZDDJotZKzAu-l5uq7_kyuaUD_XNpOp0cZHig0lOpigh3eOWqDbmmsm",
+//   stripeTestKey: "sk_test_Ma7vvXxqIKxpUoHmFNFv2oYt00u1nVjNkF"
 // };
 
 module.exports = {
@@ -20,6 +21,7 @@ module.exports = {
       require: true,
       rejectUnauthorized: false
     }
-  }
+  },
+  stripeTestKey: "sk_test_Ma7vvXxqIKxpUoHmFNFv2oYt00u1nVjNkF"
 };
 

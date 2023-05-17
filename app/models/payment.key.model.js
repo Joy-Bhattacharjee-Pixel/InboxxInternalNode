@@ -15,7 +15,7 @@ module.exports = (sequelize, _) => {
             allowNull: true,
         },
         paypalKey: {
-            type: DataTypes.BOOLEAN,
+            type: DataTypes.STRING,
             allowNull: true,
         }
     });

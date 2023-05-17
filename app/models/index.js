@@ -21,6 +21,8 @@ db.companies = require('./company.model.js')(sequelize, Sequelize); // Company m
 db.settings = require('./setting.model.js')(sequelize, Sequelize); // Settings model
 db.bulletins = require('./bulletin.model.js')(sequelize, Sequelize); // Bulletin model
 db.paymentKeys = require('./payment.key.model.js')(sequelize, Sequelize); // Payment Keys model
+db.transactions = require('./transaction.model.js')(sequelize, Sequelize); // Transaction model
+
 
 
 /* Establishing a foreign key relation with bulletins and compaies */
@@ -28,8 +30,12 @@ db.companies.hasMany(db.bulletins, { as: "bulletins" });
 db.bulletins.belongsTo(db.companies, { foreignKey: "companyId", as: "company" })
 
 /* Establishing a foreign key relation with payment keys and companies */
-db.companies.hasMany(db.paymentKeys, {as: "paymentKey"});
+db.companies.hasMany(db.paymentKeys, { as: "paymentKey" });
 db.paymentKeys.belongsTo(db.companies, { foreignKey: "companyId", as: "company" });
+
+/* Establishing a foreign key relation with transaction table and invoices */
+// db.transactions.hasMany(db.invoices, { as: "invoices" });
+// db.invoices.belongsTo(db.transactions, { foreignKey: "transactionId", as: "transaction" });
 
 // Exporting db
 module.exports = db;

@@ -29,7 +29,7 @@ const AWS = require('aws-sdk');
 const multer = require("multer");
 const multerS3 = require('multer-s3');
 
-
+const mail = require('../commons/send.email');
 
 // Initializing dropbox class
 const dbx = new Dropbox({ accessToken: Config.dropboxToken, fetch: fetch });
@@ -162,7 +162,6 @@ exports.uploadInvoiceSheet = async (req, res) => {
                     dueDate: excelData["Due Date"] == "undefined" ? null : Date(excelData["Due Date"]),
                     invoiceSummary: excelData["Invoice Summary"] == "undefined" ? null : excelData["Invoice Summary"],
                     billedToZipCode: excelData["Billed To Zip Code"] == "undefined" ? null : excelData["Billed To Zip Code"],
-                    // paymentStatus: excelData["Payment Status"] == "undefined" ? null : excelData["Payment Status"]
                 };
                 // Pushing all data into a single array
                 allExcelFormattedData.push(formattedJson);
@@ -174,12 +173,29 @@ exports.uploadInvoiceSheet = async (req, res) => {
                         await Invoices.update(formattedJson, {
                             where: { invoiceNumber: formattedJson.invoiceNumber }
                         });
+
+                        /* Sending email to respective customer - Updating invoices */
+                        /* Update invoice mail subject */
+                        const updateInvoiceMailSubject = `Invoice ${formattedJson.invoiceNumber} updated`;
+                        /* Update invoice mail text */
+                        const updateInvoiceMailText = `Hi, ${formattedJson.billedToName} we have updated your previous invoice ${formattedJson.invoiceNumber}`;
+                        /* Sending mail to the customers */
+                        mail.sendMail(updateInvoiceMailSubject, updateInvoiceMailText, formattedJson.billedToEmailID);
                     }
                     else {
                         // No invoices available to update
                         // Creating the invoice data in the invoice table
                         await Invoices.create(formattedJson);
+
+                        /* sending email to respective customer - Creating invoices */
+                        /* create invoice mail subject */
+                        const createInvoiceMailSubject = `Invoice ${formattedJson.invoiceNumber} created`;
+                        /* create invoice mail text */
+                        const createInvoiceMailText = `Hi, ${formattedJson.billedToName} we have created your previous invoice ${formattedJson.invoiceNumber}`;
+                        /* Sending mail to the customers */
+                        mail.sendMail(createInvoiceMailSubject, createInvoiceMailText, formattedJson.billedToEmailID);
                     }
+
                 } catch (error) {
                     console.log(error.message || "Error occurs");
                 }

@@ -1,7 +1,7 @@
 var fetch = require('isomorphic-fetch');
 var Dropbox = require('dropbox').Dropbox;
 var fs = require('fs');
-
+const sendEmail = require('../commons/send.email');
 
 
 // const path = require('path');
@@ -105,7 +105,7 @@ var fs = require('fs');
 // }
 
 
-const stripe = require('stripe')('sk_test_51Msi1xSBXfVd5msk8y5SJ2kdSh75V9ecdn7ZnLeyH52pRCNQFIBEMvQGDpWmCdisYkB7Uljuo9ritPEJ41eAGYbt00iTIwNEs9');
+const stripe = require('stripe')('sk_test_Ma7vvXxqIKxpUoHmFNFv2oYt00u1nVjNkF');
 
 exports.createPayment = async (req, res) => {
     // Create a customer
@@ -119,6 +119,9 @@ exports.createPayment = async (req, res) => {
     //     { customer: customer.id },
     //     { apiVersion: '2022-11-15' }
     // );
+  
+  
+  
     // // Payment intent
     // const paymentIntent = await stripe.paymentIntents.create({
     //     amount: 1099,
@@ -158,21 +161,81 @@ exports.createPayment = async (req, res) => {
     //     customer: customer.id
     // });
 
-    const product = await stripe.products.create({
-        name: 'Gold Special',
-    });
+    // const product = await stripe.products.create({
+    //     name: 'Gold Special',
+    // });
 
-    const price = await stripe.prices.create({
-        currency: 'inr',
-        unit_amount: 2500,
-        product: product.id,
-    });
+    // const price = await stripe.prices.create({
+    //     currency: 'inr',
+    //     unit_amount: 2500,
+    //     product: product.id,
+    // });
 
-    const paymentLink = await stripe.paymentLinks.create({
-        line_items: [{ price: price.id, quantity: 1 }],
-    });
+    // const paymentLink = await stripe.paymentLinks.create({
+    //     line_items: [{ price: price.id, quantity: 1 }],
+    // });
 
-    res.send(paymentLink);
+    // res.send(paymentLink);
+
+
+
+
+
+    
+    // const newcustomer = await stripe.customers.create({
+    //     email:"joy@gmail.com",
+    //     description: 'My First Test Customer (created for API docs at https://www.stripe.com/docs/api)',
+    //   });
+    // const customers = await stripe.customers.list();
+
+    // const customer = customers.data[0];
+
+    // const ephemeralKey = await stripe.ephemeralKeys.create(
+    //     { customer: customer.id },
+    //     { apiVersion: '2022-08-01' }
+    //   );
+      
+    //   const paymentIntent = await stripe.paymentIntents.create({
+    //     amount: 5099,
+    //     currency: 'usd',
+    //     customer: customer.id,
+    //     shipping: {
+    //       name: 'Jane Doe',
+    //       address: {
+    //         state: 'Texas',
+    //         city: 'Houston',
+    //         line1: '1459  Circle Drive',
+    //         postal_code: '77063',
+    //         country: 'US',
+    //       },
+    //     },
+    //     // Edit the following to support different payment methods in your PaymentSheet
+    //     // Note: some payment methods have different requirements: https://stripe.com/docs/payments/payment-methods/integration-options
+    //     payment_method_types: [
+    //       'card',
+    //       // 'ideal',
+    //       // 'sepa_debit',
+    //       // 'sofort',
+    //       // 'bancontact',
+    //       // 'p24',
+    //       // 'giropay',
+    //       // 'eps',
+    //       // 'afterpay_clearpay',
+    //       // 'klarna',
+    //       // 'us_bank_account',
+    //     ],
+    //   });
+    //    res.json({
+    //     paymentIntent: paymentIntent.client_secret,
+    //     ephemeralKey: ephemeralKey.secret,
+    //     customer: customer.id,
+    //   });
+
+    // const data = await stripe.paymentIntents.retrieve(
+    //     'pi_3N8KBIHI77ODInZe1Ez1TYaR'
+    //   );
+    //   res.send(data)
+    const data = await sendEmail.sendMail(req, res);
 }
 const paypal = require('paypal-rest-sdk');
 const mail = require('../commons/send.email');
