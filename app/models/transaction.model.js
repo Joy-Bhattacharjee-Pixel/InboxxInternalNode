@@ -13,10 +13,10 @@ module.exports = (sequelize, _) => {
         invoiceId: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            // references: {
-            //     model: "invoices",
-            //     key: "id"
-            // }
+            references: {
+                model: "invoices",
+                key: "id"
+            }
         },
         transactionId: {
             type: DataTypes.STRING,
