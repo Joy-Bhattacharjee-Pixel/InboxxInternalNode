@@ -25,6 +25,19 @@ module.exports = app => {
     router.get("/", Customer.findOne);
     // Update customer
     router.put("/", Customer.update);
+
+    /* update push token for a customer */
+    router.post("/add-token", [
+        check("customerId", "customerId is required").isLength({ min: 1, max: 50 }),
+        check("token", "token is required"),
+    ], Customer.addPushToken);
+
+    /* remove push token for a customer */
+    router.post("/remove-token", [
+        check("customerId", "customerId is required").isLength({ min: 1, max: 50 }),
+        check("token", "token is required"),
+    ], Customer.removePushToken);
+
     // Using router with the endpoints
     app.use(Endpoints.customer, router);
 }

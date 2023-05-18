@@ -11,6 +11,13 @@ const Sequelize = db.sequelize;
 
 const commonText = require('../commons/common.text');
 
+/* importing notification controller */
+const Notification = require('../controllers/notification.controller');
+
+
+const mail = require('../commons/send.email');
+
+
 /* Fetching all bulletins from the server */
 exports.getAllbulletins = async (req, res) => {
     /* Validating company id */
@@ -108,10 +115,10 @@ exports.getBulletinsUpdate = async (req, res) => {
         /* Found customer email */
         const email = customer.email;
         /* Raw SQL query for searching distinct companies from invoice table based on customer email*/
-        const companiesSentInvoicesQuery = `SELECT DISTINCT companyId FROM invoices where billedToEmailID = '${email}'`;
+        const companiesSentBulletinsQuery = `SELECT DISTINCT companyId FROM invoices where billedToEmailID = '${email}'`;
         /* Performing SQL query */
-        const companiesSentInvoices = await db.sequelize.query(companiesSentInvoicesQuery, { type: QueryTypes.SELECT });
-        if (companiesSentInvoices.length == 0) {
+        const companiesSentBulletins = await db.sequelize.query(companiesSentBulletinsQuery, { type: QueryTypes.SELECT });
+        if (companiesSentBulletins.length == 0) {
             /* When there is no company associated with this email */
             res.send({
                 status: 1,
@@ -122,13 +129,13 @@ exports.getBulletinsUpdate = async (req, res) => {
         else {
             /* All the company  */
             let companyIds = [];
-            companiesSentInvoices.forEach(company => {
+            companiesSentBulletins.forEach(company => {
                 companyIds.push(company.companyId);
             });
             const response = await Bulletins.findAll({
                 include: ["company"],
                 where: Sequelize.or(
-                    { id: companyIds })
+                    { companyId: companyIds })
             });
             res.send({
                 status: 1,
@@ -167,6 +174,51 @@ exports.createBulletins = async (req, res) => {
         try {
             /* Fetching all the available bulletins from this company */
             const bulletins = await Bulletins.create(req.body);
+
+            /* notification title */
+            const notificationTitle = "A new bulletin published";
+            /* noticiation body */
+            const notificationBody = req.body.title;
+            /* route */
+            const notificationRoute = "/bulletins";
+
+            const customerEmailsQuery = `SELECT DISTINCT billedToEmailID FROM invoices where companyId = ${id}`;
+            /* performing SQL query */
+            const customerEmails = await db.sequelize.query(customerEmailsQuery, { type: QueryTypes.SELECT });
+
+            /* customer emails in array */
+            let customerEmailArray = [];
+            customerEmails.forEach(email => {
+                customerEmailArray.push(email.billedToEmailID);
+
+                /* sending email to respective customer - Creating invoices */
+                /* create invoice mail subject */
+                const createInvoiceMailSubject = `A new bulletin published`;
+                /* create invoice mail text */
+                const createInvoiceMailText = `Hi, We have created a bulletin for you`;
+                /* Sending mail to the customers */
+                mail.sendMail(createInvoiceMailSubject, createInvoiceMailText, email.billedToEmailID);
+
+            });
+
+            /* finding customers with the email */
+            const customers = await Customer.findAll({
+                where: Sequelize.or(
+                    { email: customerEmailArray })
+            });
+
+            /* finding out all the push tokens */
+            let pushTokens = [];
+
+            customers.forEach(customer => {
+                if (customer.pushToken != null && customer.pushToken != "") {
+                    pushTokens.push(customer.pushToken)
+                }
+            });
+
+            /* sending notification to the customers */
+            await Notification.sendNotification(notificationTitle, notificationBody, notificationRoute, pushTokens);
+
             res.send({
                 status: 1,
                 message: "Bulletin Created",

@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: 1
         },
         companyId: {
-            type: DataTypes.STRING,
+            type: DataTypes.INTEGER,
             allowNull: false
         },
         invoiceNumber: {

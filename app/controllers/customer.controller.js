@@ -186,3 +186,65 @@ exports.update = async (req, res) => {
         })
     }
 }
+
+/* add push token or device id to customer table */
+exports.addPushToken = async (req, res) => {
+    /* validation for every expected field */
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        // If some errors present
+        res.status(400).json(errors);
+    }
+    /* request body */
+    const body = req.body;
+    /* update body */
+    const updateBody = {
+        pushToken: body.token
+    }
+    try {
+        /* updating push token to customer table in push token column */
+        await Customers.update(updateBody, { where: { id: body.customerId } });
+        res.send({
+            status: 1,
+            message: "push token updated",
+            token: req.body.token
+        });
+    } catch (error) {
+        res.send({
+            status: 0,
+            message: error.message,
+            token: null
+        })
+    }
+}
+
+/* delete push token or device id from customer table */
+exports.removePushToken = async (req, res) => {
+    /* validation for every expected field */
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        // If some errors present
+        res.status(400).json(errors);
+    }
+    /* request body */
+    const body = req.body;
+    /* update body */
+    const updateBody = {
+        pushToken: null
+    }
+    try {
+        /* updating push token to customer table in push token column */
+        await Customers.update(updateBody, { where: { id: body.customerId } });
+        res.send({
+            status: 1,
+            message: "push token removed",
+            token: req.body.customerId
+        });
+    } catch (error) {
+        res.send({
+            status: 0,
+            message: error.message,
+            token: null
+        })
+    }
+}

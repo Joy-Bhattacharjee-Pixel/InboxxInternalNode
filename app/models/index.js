@@ -22,6 +22,8 @@ db.settings = require('./setting.model.js')(sequelize, Sequelize); // Settings m
 db.bulletins = require('./bulletin.model.js')(sequelize, Sequelize); // Bulletin model
 db.paymentKeys = require('./payment.key.model.js')(sequelize, Sequelize); // Payment Keys model
 db.transactions = require('./transaction.model.js')(sequelize, Sequelize); // Transaction model
+db.notifications = require('./notification.model.js')(sequelize, Sequelize); // Notification model
+
 
 
 

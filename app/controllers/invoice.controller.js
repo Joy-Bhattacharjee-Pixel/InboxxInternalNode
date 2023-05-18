@@ -21,6 +21,10 @@ const Invoices = db.invoices;
 const Customers = db.customers;
 const Companies = db.companies;
 
+/* importing notification controller */
+const Notification = require('../controllers/notification.controller');
+
+
 // Importing json sheet module
 const jsonSheet = require('../commons/extract.json.sheet');
 
@@ -181,6 +185,27 @@ exports.uploadInvoiceSheet = async (req, res) => {
                         const updateInvoiceMailText = `Hi, ${formattedJson.billedToName} we have updated your previous invoice ${formattedJson.invoiceNumber}`;
                         /* Sending mail to the customers */
                         mail.sendMail(updateInvoiceMailSubject, updateInvoiceMailText, formattedJson.billedToEmailID);
+
+                        /* sending notification to the eligible customers */
+                        /* notification title */
+                        const notificationTitle = `Invoice ${formattedJson.invoiceNumber} updated`;
+                        /* noticiation body */
+                        const notificationBody = `Now the invoice value is ${formattedJson.invoiceValue}`;
+                        /* route */
+                        const notificationRoute = "/invoices";
+
+                        /* finding customers with the email */
+                        const customers = await Customers.findAll({
+                            where: { email: formattedJson.billedToEmailID }
+                        });
+
+                        if (customers.length != 0) {
+                            const customer = customers[0];
+                            const pushToken = customer.pushToken;
+                            if (pushToken != null) {
+                                await Notification.sendNotification(notificationTitle, notificationBody, notificationRoute, [pushToken]);
+                            }
+                        }
                     }
                     else {
                         // No invoices available to update
@@ -191,11 +216,31 @@ exports.uploadInvoiceSheet = async (req, res) => {
                         /* create invoice mail subject */
                         const createInvoiceMailSubject = `Invoice ${formattedJson.invoiceNumber} created`;
                         /* create invoice mail text */
-                        const createInvoiceMailText = `Hi, ${formattedJson.billedToName} we have created your previous invoice ${formattedJson.invoiceNumber}`;
+                        const createInvoiceMailText = `Hi, ${formattedJson.billedToName} we have created a new invoice ${formattedJson.invoiceNumber}`;
                         /* Sending mail to the customers */
                         mail.sendMail(createInvoiceMailSubject, createInvoiceMailText, formattedJson.billedToEmailID);
-                    }
 
+                        /* sending notification to the eligible customers */
+                        /* notification title */
+                        const notificationTitle = `Invoice ${formattedJson.invoiceNumber} created`;
+                        /* noticiation body */
+                        const notificationBody = `The invoice value is ${formattedJson.invoiceValue}`;
+                        /* route */
+                        const notificationRoute = "/invoices";
+
+                        /* finding customers with the email */
+                        const customers = await Customers.findAll({
+                            where: { email: formattedJson.billedToEmailID }
+                        });
+
+                        if (customers.length != 0) {
+                            const customer = customers[0];
+                            const pushToken = customer.pushToken;
+                            if (pushToken != null) {
+                                await Notification.sendNotification(notificationTitle, notificationBody, notificationRoute, [pushToken]);
+                            }
+                        }
+                    }
                 } catch (error) {
                     console.log(error.message || "Error occurs");
                 }
@@ -328,7 +373,7 @@ exports.companiesSentInvoices = async (req, res) => {
         /* Fetching companies list from invoice table which have sent me invoices */
         try {
             /* Raw SQL query for searching distinct companies from invoice table */
-            const companiesSentInvoicesQuery = `SELECT DISTINCT companyId FROM invoices where billedToEmailID='${email}' AND paid = ${paid}`;
+            const companiesSentInvoicesQuery = `SELECT DISTINCT companyId FROM invoices where billedToEmailID='${email}' AND paid=${paid}`;
             // Performing raw SQL query
             const companiesSentInvoices = await db.sequelize.query(companiesSentInvoicesQuery, { type: QueryTypes.SELECT });
             /* Companies sent invoices list */
