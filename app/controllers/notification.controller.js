@@ -24,11 +24,13 @@ exports.sendNotification = async (title, body, route, tokens) => {
     /* notification message */
     const message = {
         data: {
+            title: title,
+            body: body,
             route: route
         },
         notification: {
-            title: title,
-            body: body
+            title: null,
+            body: null
         }
     };
 

@@ -31,10 +31,6 @@ require("./app/routes/bulletin.route")(app); // Bulletin route
 require("./app/routes/payment.route")(app); // Payment route
 
 
-
-
-
-
 // Defining port
 const PORT = process.env.PORT || 8045;
 // Listenning to port

@@ -9,10 +9,10 @@ module.exports = app => {
     // Importing router
     const router = require("express").Router();
     // Uploading the file to the dropbox
-    router.post("/uploadSheet", upload.single("file"), Invoice.uploadCustomerSheet);
+    // router.post("/uploadSheet", upload.single("file"), Invoice.uploadCustomerSheet);
     // Uploading invoice sheet
     router.post("/uploadInvoiceSheet", upload.single("file"), Invoice.uploadInvoiceSheet);
-    router.post("/editInvoiceSheet", upload.single("file"), Invoice.editExcelSheet);
+    // router.post("/editInvoiceSheet", upload.single("file"), Invoice.editExcelSheet);
     router.post("/space", upload.single("file"), Invoice.uploadToDigitOcean);
 
 

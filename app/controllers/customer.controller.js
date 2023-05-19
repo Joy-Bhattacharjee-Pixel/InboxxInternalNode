@@ -122,7 +122,17 @@ exports.create = async (req, res) => {
 exports.allCustomers = async (req, res) => {
     try {
         const response = await Customers.findAll();
-        res.send({ status: 1, message: "Customers found successfully", customers: response });
+        if (req.query.keyword != null) {
+            let searchedCustomers = [];
+            response.forEach(customer => {
+                if (customer.email.toLowerCase().includes(req.query.keyword.toLowerCase())) {
+                    searchedCustomers.push(customer);
+                }
+            });
+            res.send({ status: 1, message: "Customers found successfully", customers: searchedCustomers });
+        } else {
+            res.send({ status: 1, message: "Customers found successfully", customers: response });
+        }
     } catch (error) {
         res.send({ status: 0, message: "No customers found", customers: [] })
     }
@@ -248,3 +258,4 @@ exports.removePushToken = async (req, res) => {
         })
     }
 }
+
