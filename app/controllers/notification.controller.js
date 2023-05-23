@@ -29,8 +29,8 @@ exports.sendNotification = async (title, body, route, tokens) => {
             route: route
         },
         notification: {
-            title: title,
-            body: body
+            title: null,
+            body: null
         }
     };
 
