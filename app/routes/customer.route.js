@@ -1,5 +1,8 @@
 const { check, validationResult } = require('express-validator');
 
+// Importing middleware-upload
+const upload = require("../middleware/upload");
+
 module.exports = app => {
     // Importing customer controller
     const Customer = require("../controllers/customer.controller");
@@ -37,6 +40,9 @@ module.exports = app => {
         check("customerId", "customerId is required").isLength({ min: 1, max: 50 }),
         check("token", "token is required"),
     ], Customer.removePushToken);
+
+    /* update customer profile image */
+    router.post("/upload-image", upload.single("file"), Customer.updateProfileImage);
 
     // Using router with the endpoints
     app.use(Endpoints.customer, router);

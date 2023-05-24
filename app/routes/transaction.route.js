@@ -8,6 +8,9 @@ module.exports = app => {
 
     /* fetching all keys for a particular company */
     router.get("/keys", transaction.getAllKeys);
+
+    /* search trans for a particular company */
+    router.post("/search", transaction.search);
     
     app.use(endpoint, router);
 }

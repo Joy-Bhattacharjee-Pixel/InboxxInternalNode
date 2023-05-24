@@ -3,10 +3,15 @@ const { check, validationResult } = require('express-validator');
 const cryptoAlgorithm = require('../commons/crypto.algo');
 // Importing db
 const db = require("../models");
+const dbConfig = require("../configs/config")
+
 // Importing customer module
 const Customers = db.customers;
 // Importing invoice module
 const Invoices = db.invoices;
+
+const path = require('path');
+
 // Verify customer with email + password
 exports.authCustomer = async (req, res) => {
     // Validation - email, password
@@ -153,10 +158,25 @@ exports.findOne = async (req, res) => {
     try {
         // Finding customer based on id
         const resposne = await Customers.findByPk(id);
+        let customerObject = resposne;
+
+        if (resposne.image != null) {
+            let image = customerObject.image;
+            let baseUrl = "";
+            if (dbConfig.HOST == "localhost") {
+                baseUrl = "http://localhost:8081";
+            }
+            else {
+                baseUrl = "http://142.93.209.188:8045";
+            }
+            image = baseUrl + "/api/v1/file/uploads/" + image
+            customerObject.image = image;
+        }
+
         res.send({
             status: 1,
             message: `Sent id ${req.query.id}`,
-            customer: resposne
+            customer: customerObject
         });
     } catch (error) {
         res.status(500).send({
@@ -259,3 +279,29 @@ exports.removePushToken = async (req, res) => {
     }
 }
 
+/* update profile image */
+exports.updateProfileImage = async (req, res) => {
+    if (!req.file) {
+        res.status(400).send({ message: "Customer image is required" });
+    }
+    if (!req.body.customerId) {
+        res.status(400).send({ message: "Customer Id is required" });
+    }
+    try {
+        /* uploaded file path */
+        const filePath = path.resolve(path.dirname('')) + "/resources/static/assets/uploads/" + req.file.filename;
+        /* uploading image path to the customer table */
+        await Customers.update({ image: req.file.filename }, { where: { id: req.body.customerId } });
+        res.send({
+            status: 1,
+            message: "Image uploaded successfully",
+            file: req.file.filename
+        });
+    } catch (error) {
+        res.send({
+            status: 0,
+            message: error.message || "Error",
+            file: null
+        });
+    }
+}
