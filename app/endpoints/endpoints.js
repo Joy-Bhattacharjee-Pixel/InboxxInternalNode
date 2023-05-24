@@ -7,6 +7,6 @@ module.exports = {
     file: "/api/v1/file", // File endpoint
     settings: "/api/v1/settings", // Settings endpoint
     bulletins: "/api/v1/bulletins", // Bulletins endpoint
-    payments: "/api/v1/payments", // Bulletins endpoint
-
+    payments: "/api/v1/payments", // payment endpoint
+    transaction: "/api/v1/transactions", // transaction endpoint
 };

@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require('cors');
+
 // This is required for parsing body from POST
 app.use(cors());
 app.use(express.json());
@@ -29,6 +30,8 @@ require("./app/routes/setting.route")(app); // Settings route
 require("./app/routes/file.routes")(app); // File route
 require("./app/routes/bulletin.route")(app); // Bulletin route
 require("./app/routes/payment.route")(app); // Payment route
+require("./app/routes/transaction.route")(app); // Transaction route
+
 
 
 // Defining port
