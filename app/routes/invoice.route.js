@@ -1,6 +1,9 @@
 // Importing middleware-upload
 const upload = require("../middleware/upload");
 
+const { check, validationResult } = require('express-validator');
+
+
 module.exports = app => {
     // Importing invoice controller
     const Invoice = require("../controllers/invoice.controller");
@@ -31,7 +34,18 @@ module.exports = app => {
     /* Updating a single invoice raised by a company - Admin usage */
     router.put("/all/admin", Invoice.updateAllInvoices);
 
-    
+    /* Searching invoice */
+    router.post("/admin/search", [
+        check("companyId", "companyId is required").isLength({ min: 1, max: 50 }),
+        // check("invoiceDate", "invoiceDate is required").isLength({ min: 1, max: 50 }),
+        // check("dateType", "dateType is required").isLength({ min: 1, max: 50 }),
+        // check("invoiceAmount", "invoiceAmount is required").isLength({ min: 1, max: 50 }),
+        // check("invoiceAmountType", "invoiceAmountType is required").isLength({ min: 1, max: 50 }),
+        // check("customerName", "customerName is required").isLength({ min: 1, max: 50 }),
+        // check("selectedStatus", "selectedStatus is required").isLength({ min: 1, max: 50 }),
+    ], Invoice.searchInvoice);
+
+
     // Using router with the endpoints
     app.use(Endpoints.invoice, router);
 }

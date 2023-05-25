@@ -41,10 +41,24 @@ exports.authCustomer = async (req, res) => {
             const savedPassword = response[0].password;
             const decryptedPassword = cryptoAlgorithm.decrypt(savedPassword);
             if (decryptedPassword == req.body.password) {
+                let customerObject = response[0];
+                if (customerObject.image != null && customerObject.image != "") {
+                    let image = customerObject.image;
+
+                    let baseUrl = "";
+                    if (dbConfig.HOST == "localhost") {
+                        baseUrl = "http://localhost:8081";
+                    }
+                    else {
+                        baseUrl = "http://142.93.209.188:8045";
+                    }
+                    image = baseUrl + "/api/v1/file/uploads/" + image
+                    customerObject.image = image;
+                }
                 res.status(200).send({
                     status: 1,
                     message: "Customer found with this email & password",
-                    customer: response[0]
+                    customer: customerObject
                 });
             }
             else {

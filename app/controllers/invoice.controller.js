@@ -16,6 +16,10 @@ const db = require("../models");
 const { QueryTypes } = require('sequelize');
 const Sequelize = db.sequelize;
 
+const { check, validationResult } = require('express-validator');
+
+const { Op } = require("sequelize");
+
 
 const Invoices = db.invoices;
 const Customers = db.customers;
@@ -500,7 +504,54 @@ exports.updateAllInvoices = async (req, res) => {
 
 }
 
+/* search invoice */
+exports.searchInvoice = async (req, res) => {
+    /* Validating the request body */
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        // If some errors present
+        res.status(400).json(errors);
+    }
 
+    const companyId = req.body.companyId;
+
+    const body = {
+        invoiceDate: req.body.invoiceDate,
+        dateType: req.body.dateType,
+        invoiceAmount: req.body.invoiceAmount,
+        invoiceAmountType: req.body.invoiceAmountType,
+        customerName: req.body.customerName,
+        selectedStatus: req.body.selectedStatus
+    };
+
+    let foundInvoices = [];
+
+    try {
+        const response = await Invoices.findAll({
+            where: {
+                [Op.and]: [
+                    body.invoiceDate && body.dateType == "Before" && {
+                        createdAt: {
+                            [Op.lt]: body.invoiceDate
+                        }
+                    },
+                    body.invoiceDate && body.dateType == "Equals" && {
+                        createdAt: body.invoiceDate
+                    },
+                    body.invoiceDate && body.dateType == "After" && {
+                        createdAt: {
+                            [Op.gt]: body.invoiceDate
+                        }
+                    }
+                ]
+            }
+        });
+        res.send(response);
+    } catch (error) {
+        res.send(error);
+    }
+
+}
 
 
 
