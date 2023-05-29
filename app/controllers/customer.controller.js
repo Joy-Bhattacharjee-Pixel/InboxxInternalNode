@@ -376,8 +376,8 @@ exports.getOtpMail = async (req, res) => {
 
 /* update password - Forgot password */
 exports.updatePassword = async (req, res) => {
-    /* request body customer id */
-    const customerId = req.body.customerId;
+    /* request body customer email */
+    const email = req.body.email;
     /* request body password */
     const password = req.body.password;
     /* encrypting password */
@@ -388,7 +388,7 @@ exports.updatePassword = async (req, res) => {
     };
     try {
         /* updating password to the customer with id */
-        await Customers.update(body, { where: { id: customerId } });
+        await Customers.update(body, { where: { email: email } });
         /* sending response back */
         res.send({
             status: 1,
