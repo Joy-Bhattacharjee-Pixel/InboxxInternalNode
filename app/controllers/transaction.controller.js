@@ -7,6 +7,9 @@ const Transactions = db.transactions;
 /* importing payment keys model */
 const PaymentKeys = db.paymentKeys;
 
+/* importing pagination module */
+const pagination = require('../commons/pagination');
+
 /* getting all the transaction for a particular company - ADMIN */
 exports.getTransactions = async (req, res) => {
     /* id in query */
@@ -19,12 +22,15 @@ exports.getTransactions = async (req, res) => {
         })
     }
 
+    const { page } = req.query;
+    const { limit, offset } = pagination.getPagination(page, 10);
+
     try {
-        const response = await Transactions.findAll({ where: { companyId: id } });
+        const response = await Transactions.findAndCountAll({ where: { companyId: id }, limit, offset });
         res.send({
             status: 1,
             message: "All transactions",
-            transactions: response
+            data: pagination.getPagingDataTransactions(response, page, limit)
         })
     } catch (error) {
         res.send({

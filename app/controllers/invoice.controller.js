@@ -20,6 +20,9 @@ const { check, validationResult } = require('express-validator');
 
 const { Op } = require("sequelize");
 
+/* importing pagination module */
+const pagination = require('../commons/pagination');
+
 
 const Invoices = db.invoices;
 const Customers = db.customers;
@@ -322,13 +325,17 @@ exports.allInvoices = async (req, res) => {
             invoices: null
         })
     }
+
+    const { page } = req.query;
+    const { limit, offset } = pagination.getPagination(page, 10);
+
     /* Trying to fetch all the invoices from this company based on query id */
     try {
-        const invoices = await Invoices.findAll({ where: { companyId: req.query.id } });
+        const invoices = await Invoices.findAndCountAll({ where: { companyId: req.query.id }, limit, offset });
         res.send({
             status: 1,
             message: `All invoices from company ${req.query.id}`,
-            invoices: invoices
+            data: pagination.getPagingDataInvoices(invoices, page, limit)
         });
     } catch (error) {
         /* When some error occurs */

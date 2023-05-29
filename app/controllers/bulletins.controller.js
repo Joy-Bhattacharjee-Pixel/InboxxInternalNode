@@ -14,9 +14,10 @@ const commonText = require('../commons/common.text');
 /* importing notification controller */
 const Notification = require('../controllers/notification.controller');
 
-
 const mail = require('../commons/send.email');
 
+/* importing pagination module */
+const pagination = require('../commons/pagination');
 
 /* Fetching all bulletins from the server */
 exports.getAllbulletins = async (req, res) => {
@@ -28,37 +29,70 @@ exports.getAllbulletins = async (req, res) => {
             bulletins: null
         });
     }
-    /* Keyword send by company to search bulletins */
-    const keyword = req.query.keyword;
+
+    const { page } = req.query;
+    const { limit, offset } = pagination.getPagination(page, 10);
+
     try {
         /* Finding all bulletins from this particular company with company id in query */
-        const response = await Bulletins.findAll({ where: { companyId: req.query.id } });
-        if (keyword) {
-            /* When keyword is available */
-            let searchedBulletins = [];
-            response.forEach(bulletin => {
-                if (bulletin.title.toLowerCase().includes(keyword.toLowerCase())) {
-                    searchedBulletins.push(bulletin);
-                }
-            });
-            res.send({
-                status: 1,
-                message: "All available bulletins",
-                bulletins: searchedBulletins
-            });
-        } else {
-            res.send({
-                status: 1,
-                message: "All available bulletins",
-                bulletins: response
-            });
-        }
+        const response = await Bulletins.findAndCountAll({ where: { companyId: req.query.id }, limit, offset });
+        res.send({
+            status: 1,
+            message: "All available bulletins",
+            data: pagination.getPagingDataBulletins(response, page, limit)
+
+        });
     } catch (error) {
         res.send({
             status: 0,
             message: error.message || "We faced some issue, please try again later",
             bulletins: null
         });
+    }
+}
+
+/* search bulletins */
+exports.searchAllBulletins = async (req, res) => {
+    /* Validating company id */
+    if (!req.query.id) {
+        res.send({
+            status: 0,
+            message: "Company Id is required",
+            bulletins: null
+        });
+    }
+
+    if (!req.query.keyword) {
+        res.send({
+            status: 0,
+            message: "Search keyword is required",
+            bulletins: null
+        });
+    }
+    /* Keyword send by company to search bulletins */
+    const keyword = req.query.keyword;
+
+    try {
+        /* Finding all bulletins from this particular company with company id in query */
+        const response = await Bulletins.findAll({ where: { companyId: req.query.id } });
+        /* When keyword is available */
+        let searchedBulletins = [];
+        response.forEach(bulletin => {
+            if (bulletin.title.toLowerCase().includes(keyword.toLowerCase())) {
+                searchedBulletins.push(bulletin);
+            }
+        });
+        res.send({
+            status: 1,
+            message: "All available bulletins",
+            bulletins: searchedBulletins
+        });
+    } catch (error) {
+        res.send({
+            status: 0,
+            message: error.message,
+            bulletins: null
+        })
     }
 }
 

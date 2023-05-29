@@ -6,6 +6,9 @@ module.exports = app => {
     /* Fetching all bulletins from a company - Admin */
     router.get("/all", bulletins.getAllbulletins);
 
+    /* Searching all bulletins from a company - Admin */
+    router.get("/all/search", bulletins.searchAllBulletins);
+
     /* Getting bulletins for a single customer based on customer id */
     router.get("/", bulletins.getBulletinsUpdate);
     
