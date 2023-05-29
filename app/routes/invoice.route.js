@@ -3,7 +3,6 @@ const upload = require("../middleware/upload");
 
 const { check, validationResult } = require('express-validator');
 
-
 module.exports = app => {
     // Importing invoice controller
     const Invoice = require("../controllers/invoice.controller");

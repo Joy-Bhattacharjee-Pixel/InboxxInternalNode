@@ -9,4 +9,5 @@ module.exports = {
     bulletins: "/api/v1/bulletins", // Bulletins endpoint
     payments: "/api/v1/payments", // payment endpoint
     transaction: "/api/v1/transactions", // transaction endpoint
+    notification: "/api/v1/notifications", // transaction endpoint
 };

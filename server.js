@@ -31,7 +31,7 @@ require("./app/routes/file.routes")(app); // File route
 require("./app/routes/bulletin.route")(app); // Bulletin route
 require("./app/routes/payment.route")(app); // Payment route
 require("./app/routes/transaction.route")(app); // Transaction route
-
+require("./app/routes/notification.route")(app); // Transaction route
 
 
 // Defining port

@@ -12,6 +12,13 @@ const Invoices = db.invoices;
 
 const path = require('path');
 
+/* importing mail */
+const mail = require('../commons/send.email');
+
+/* importing random number */
+const random = require("../commons/random.number");
+
+
 // Verify customer with email + password
 exports.authCustomer = async (req, res) => {
     // Validation - email, password
@@ -317,5 +324,82 @@ exports.updateProfileImage = async (req, res) => {
             message: error.message || "Error",
             file: null
         });
+    }
+}
+
+/* get OTP in mail - Forgot password */
+exports.getOtpMail = async (req, res) => {
+    /* request body email */
+    const email = req.body.email;
+
+    /* validating email */
+    try {
+        /* checking this email existed in customer table or not */
+        const customers = await Customers.findAll({ where: { email: email } });
+        if (customers.length == 0) {
+            /* no customer present with this email address */
+            res.send({
+                status: 0,
+                message: "No customer present with this email address",
+                email: email
+            });
+        }
+        else {
+            /* customer present with this email address */
+            const customer = customers[0];
+
+            /* sending OTP in mail */
+            /* mail subject */
+            const mailSubject = "Change password OTP";
+            /* auto generated random OTP */
+            const otp = random.randomNumber(1000, 9999);
+            /* mail body */
+            const mailBody = `OTP to change your password in Inboxx application is ${otp}`;
+            /* sending mail */
+            mail.sendMail(mailSubject, mailBody, [customer.email]);
+
+            /* sending response to user */
+            res.send({
+                status: 1,
+                message: `OTP sent successfully in ${email}`,
+                otp: otp
+            })
+        }
+    } catch (error) {
+        res.send({
+            status: 0,
+            message: error.message,
+            otp: null
+        })
+    }
+}
+
+/* update password - Forgot password */
+exports.updatePassword = async (req, res) => {
+    /* request body customer id */
+    const customerId = req.body.customerId;
+    /* request body password */
+    const password = req.body.password;
+    /* encrypting password */
+    const encryptedPassword = cryptoAlgorithm.encrypt(password);
+    /* updating body */
+    const body = {
+        password: encryptedPassword
+    };
+    try {
+        /* updating password to the customer with id */
+        await Customers.update(body, { where: { id: customerId } });
+        /* sending response back */
+        res.send({
+            status: 1,
+            message: "Password updated successfully",
+            id: customerId
+        });
+    } catch (error) {
+        res.send({
+            status: 0,
+            message: error.message,
+            id: customerId
+        })
     }
 }

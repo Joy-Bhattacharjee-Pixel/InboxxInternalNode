@@ -5,6 +5,12 @@ const db = require("../models");
 const Companies = db.companies;
 const PaymentKeys = db.paymentKeys;
 
+/* importing invoice model */
+const Invoices = db.invoices;
+
+/* Importing query types */
+const { QueryTypes } = require('sequelize');
+
 // Importing crypto module
 const cryptoAlgorithm = require('../commons/crypto.algo');
 
@@ -178,4 +184,18 @@ exports.search = async (req, res) => {
             companies: []
         })
     }
+}
+
+/* find customers who are associated with this company */
+exports.customers = async (companyId) => {
+    /* finding out all the customer to which invoices (distinct) are raised by this company */
+    try {
+        /* raw SQL query for searching distinct customers from invoice table based on company id */
+        const customerEmailsQuery = `SELECT DISTINCT billedToEmailID FROM invoices where companyId = '${companyId}'`;
+
+        /* performing SQL query */
+        const customerEmails = await db.sequelize.query(customerEmailsQuery, { type: QueryTypes.SELECT });
+        
+        return customerEmails;
+    } catch (error) {}
 }

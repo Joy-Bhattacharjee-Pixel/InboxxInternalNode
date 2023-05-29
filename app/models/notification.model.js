@@ -6,6 +6,10 @@ module.exports = (sequelize, _) => {
             type: DataTypes.BOOLEAN,
             defaultValue: 1
         },
+        companyId: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
         title: {
             type: DataTypes.STRING,
             allowNull: false
@@ -16,7 +20,7 @@ module.exports = (sequelize, _) => {
         },
         route: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
         }
     });
     return Notification;

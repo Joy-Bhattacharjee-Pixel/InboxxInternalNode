@@ -44,6 +44,12 @@ module.exports = app => {
     /* update customer profile image */
     router.post("/upload-image", upload.single("file"), Customer.updateProfileImage);
 
+    /* requesting OTP to the email address for password update */
+    router.post("/request-otp", Customer.getOtpMail);
+
+    /* update password after OTP verification */
+    router.post("/update-password", Customer.updatePassword);
+
     // Using router with the endpoints
     app.use(Endpoints.customer, router);
 }

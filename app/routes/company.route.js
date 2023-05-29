@@ -25,7 +25,7 @@ module.exports = app => {
     // Find all companies
     router.get("/all", Companies.findAll);
     // Update the company
-    router.patch("", Companies.update,
+    router.patch("/", Companies.update,
         [check("id", "company id is required").isLength({ min: 1, max: 50 })]);
     // Search company using name
     router.get("/", Companies.search);

@@ -1,8 +1,17 @@
 /* importing db module */
 const db = require("../models");
 
+/* import sequealize */
+const Sequelize = db.Sequelize;
+
 /* importing notification module */
 const Notification = db.notifications;
+
+/* importing company controller */
+const Company = require('../controllers/company.controller');
+
+/* importing customer module */
+const Customer = db.customers;
 
 /* importing admin module */
 const admin = require("firebase-admin");
@@ -45,6 +54,63 @@ exports.sendNotification = async (title, body, route, tokens) => {
 
         });
     } catch (error) {
-        console.log('err--', err);
+        console.log('err--', error);
+    }
+}
+
+/* creating notification from admin panel - ADMIN */
+exports.create = async (req, res) => {
+    /* notification body */
+    const body = req.body;
+
+    /* company id */
+    const companyId = body.companyId;
+
+    /* notification title */
+    const title = body.title;
+
+    /* notification message */
+    const message = body.message;
+
+    /* notification route */
+    const route = body.route;
+
+    /* sending notification to customers */
+    const customerEmails = await Company.customers(companyId);
+
+    /* all push tokens available */
+    let allTokens = [];
+
+    /* looping through every customer */
+    let customerEmailArray = [];
+
+    customerEmails.forEach(cust => {
+        customerEmailArray.push(cust.billedToEmailID);
+    });
+
+    /* finding customers with the email */
+    const customers = await Customer.findAll({
+        where: Sequelize.or(
+            { email: customerEmailArray })
+    });
+
+    /* finding out all the push tokens */
+    let pushTokens = [];
+
+    customers.forEach(customer => {
+        if (customer.pushToken != null && customer.pushToken != "") {
+            pushTokens.push(customer.pushToken)
+        }
+    });
+
+    /* sending notification to customer */
+    this.sendNotification(title, message, route, pushTokens);
+
+    try {
+        /* creating notification to notification table */
+        const response = await Notification.create(body);
+        res.send("response");
+    } catch (error) {
+        res.send(error.message);
     }
 }
