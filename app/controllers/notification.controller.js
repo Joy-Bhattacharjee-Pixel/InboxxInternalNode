@@ -28,6 +28,9 @@ const certPath = admin.credential.cert(serviceAccount);
 /* importing fcm module */
 var FCM = new fcm(certPath);
 
+/* importing pagination module */
+const pagination = require('../commons/pagination');
+
 /* sending notification to the customers */
 exports.sendNotification = async (title, body, route, tokens) => {
     /* notification message */
@@ -40,7 +43,7 @@ exports.sendNotification = async (title, body, route, tokens) => {
         notification: {
             title: null,
             body: null
-        }
+        },
     };
 
     try {
@@ -78,9 +81,6 @@ exports.create = async (req, res) => {
     /* sending notification to customers */
     const customerEmails = await Company.customers(companyId);
 
-    /* all push tokens available */
-    let allTokens = [];
-
     /* looping through every customer */
     let customerEmailArray = [];
 
@@ -112,5 +112,20 @@ exports.create = async (req, res) => {
         res.send("response");
     } catch (error) {
         res.send(error.message);
+    }
+}
+
+/* fetch all notifications */
+exports.findAll = async (req, res) => {
+    const companyId = req.query.id;
+    
+    const { page } = req.query;
+    const { limit, offset } = pagination.getPagination(page, 10);
+
+    try {
+        const response = await Notification.findAndCountAll({ where: { companyId: companyId }, limit, offset  });
+        res.send(pagination.getPagingDataNotifications(response, page, limit));
+    } catch (error) {
+        res.send(error)
     }
 }

@@ -13,5 +13,7 @@ module.exports = app => {
         check("message", "message is required").isLength({ min: 1, max: 50 })
     ], notifications.create);
 
+    router.get("/all", notifications.findAll);
+
     app.use(endpoints.notification, router);
 }

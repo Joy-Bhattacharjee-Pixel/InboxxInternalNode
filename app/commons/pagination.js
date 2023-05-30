@@ -28,3 +28,11 @@ exports.getPagingDataTransactions = (data, page, limit) => {
 
     return { totalItems, transactions, totalPages, currentPage };
 };
+
+exports.getPagingDataNotifications = (data, page, limit) => {
+    const { count: totalItems, rows: notifications } = data;
+    const currentPage = page ? + page : 0;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return { totalItems, notifications, totalPages, currentPage };
+};

@@ -393,13 +393,13 @@ exports.updatePassword = async (req, res) => {
         res.send({
             status: 1,
             message: "Password updated successfully",
-            id: customerId
+            email: email
         });
     } catch (error) {
         res.send({
             status: 0,
             message: error.message,
-            id: customerId
+            email: email
         })
     }
 }
