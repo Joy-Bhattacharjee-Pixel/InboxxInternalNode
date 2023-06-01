@@ -482,9 +482,11 @@ exports.createInvoice = async (req, res) => {
 /* Create payment session */
 exports.createPaymentSession = async (req, res, priceId, fromMobile, invoiceId, companyId) => {
     /** Encrypting invoice id */
-    const encryptedInvId = cryptoAlgorithm.encrypt(`${invoiceId}`);
+    const encryptedInvId = invoiceId;
+    // cryptoAlgorithm.encrypt(`${invoiceId}`);
     /** Encrypting company id */
-    const encryptedCompanyId = cryptoAlgorithm.encrypt(`${companyId}`);
+    const encryptedCompanyId = companyId;
+    // cryptoAlgorithm.encrypt(`${companyId}`);
 
     /* base url */
     const baseUrl = config.baseUrl;
@@ -529,10 +531,14 @@ exports.createPaymentSession = async (req, res, priceId, fromMobile, invoiceId, 
 /** API for validate the success payment */
 exports.success = async (req, res) => {
     /** Retrieving invoice id from url */
-    const invoiceId = cryptoAlgorithm.decrypt("U2FsdGVkX19RCvAQKCRE1FAaUQ30vN0u5rlbf/kPW7A=");
+    const invoiceId = req.query.invoice;
+    // cryptoAlgorithm.decrypt(req.query.invoice);
+
+    console.log(req.query.invoice);
 
     /** Retrieving company id from url */
-    const company = cryptoAlgorithm.decrypt(req.query.company);
+    const company = req.query.company;
+    // cryptoAlgorithm.decrypt(req.query.company);
 
     /** Invoice details */
     let invoiceDetails = {};
@@ -602,7 +608,7 @@ exports.success = async (req, res) => {
                 /** Adding in transaction table */
                 await Transactions.create(transactionObject);
 
-                res.send(success.show(invoiceId, customerDetails.name));
+                res.send(success.show(res, invoiceId, customerDetails.name));
 
             } catch (error) { console.log(error); res.send("Payment cancelled"); }
         }
