@@ -247,7 +247,7 @@ const email = require("../commons/send.email");
 
 /* sending test email */
 exports.sendEmail = async (req, res) => {
-    const emails = ["joy.bhattacharjee@pixelconsultancy.in", "surajit@pixelconsultancy.in"];
+    const emails = ["joy.bhattacharjee@pixelconsultancy.in", "aritrya.kumar@pixelconsultancy.in"];
     const mailSubject = "This is for testing CRON";
     const mailText = "This is the mail text for testing CRON from Digital Ocean";
     try {

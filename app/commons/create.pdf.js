@@ -19,10 +19,10 @@ exports.createPdf = async (pdfName, customerName, companyName, invoiceNumber, pa
     doc.fontSize(13).text(`Hi ${customerName},\n\nWe have raised you an invoice with invoice number: ${invoiceNumber}. This invoice is from ${companyName}.`, 10, 200);
 
 
-    doc
-        .fillColor('blue')
-        .text(`${paymentLink}`, 10, 300)
-        .link(10, 300, 160, 27, paymentLink);
+    // doc
+    //     .fillColor('blue')
+    //     .text(`${paymentLink}`, 10, 300)
+    //     .link(10, 300, 160, 27, paymentLink);
 
 
 

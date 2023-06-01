@@ -12,12 +12,15 @@ const Transactions = db.transactions;
 /* Importing create pdf module */
 const pdf = require('../commons/create.pdf');
 
-const path =  require('path');
+const path = require('path');
 
+const success = require('../commons/common.success');
 
-/* importing html file */
-const htmlFile = path.resolve(path.dirname('')) + "/app/commons/index.html"
+/** Importing customer module */
+const Customer = db.customers;
 
+// Importing crypto module
+const cryptoAlgorithm = require('../commons/crypto.algo');
 
 /* Adding keys to the payment keys table based on company id */
 exports.addKeys = async (req, res) => {
@@ -414,74 +417,79 @@ exports.createInvoice = async (req, res) => {
     /* created invoice name */
     const createdInvoiceName = `${invoiceNumber}_${invoiceId}_${companyId}`;
 
-    // try {
-    //     /* checking if any products available with this invoice name or not */
-    //     const tempProducts = await stripe.products.list();
+    try {
+        /* checking if any products available with this invoice name or not */
+        const tempProducts = await stripe.products.list();
 
-    //     /* all products available */
-    //     const products = tempProducts.data;
+        /* all products available */
+        const products = tempProducts.data;
 
-    //     /* finding out all the products with this name */
-    //     const previousProduct = products.filter((item) => item.name == createdInvoiceName);
+        /* finding out all the products with this name */
+        const previousProduct = products.filter((item) => item.name == createdInvoiceName);
 
-    //     if (previousProduct.length == 0) {
-    //         /* no products found */
-    //         /* creating invoice with name as - invoiceNumber_invoiceId_companyId*/
-    //         try {
-    //             const product = await stripe.products.create({
-    //                 name: createdInvoiceName,
-    //                 description: `Invoice created from ${companyId} with Invoice number ${invoiceNumber} & Invoice id ${invoiceId}`
-    //             });
-    //             /* adding productID & price */
-    //             productID = product.id;
-    //         } catch (error) {
-    //             console.log(error);
-    //         }
+        if (previousProduct.length == 0) {
+            /* no products found */
+            /* creating invoice with name as - invoiceNumber_invoiceId_companyId*/
+            try {
+                const product = await stripe.products.create({
+                    name: createdInvoiceName,
+                    description: `Invoice created from ${companyId} with Invoice number ${invoiceNumber} & Invoice id ${invoiceId}`
+                });
+                /* adding productID & price */
+                productID = product.id;
+            } catch (error) {
+                console.log(error);
+            }
 
-    //         /* creating price for this product */
-    //         try {
-    //             const price = await stripe.prices.create({
-    //                 unit_amount: invoiceAmount,
-    //                 currency: invoiceCurrency,
-    //                 product: productID,
-    //             });
-    //             productPrice = price.unit_amount;
-    //             priceId = price.id;
-    //         } catch (error) {
-    //             console.log(error);
-    //         }
-    //     }
-    //     else {
-    //         /* products found */
-    //         const product = products[0];
-    //         productID = product.id;
-    //         productPrice = product.default_price;
+            /* creating price for this product */
+            try {
+                const price = await stripe.prices.create({
+                    unit_amount: invoiceAmount,
+                    currency: invoiceCurrency,
+                    product: productID,
+                });
+                productPrice = price.unit_amount;
+                priceId = price.id;
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        else {
+            /* products found */
+            const product = products[0];
+            productID = product.id;
+            productPrice = product.default_price;
 
-    //         /* finding out all the prices available */
-    //         const tempPrices = await stripe.prices.list();
-    //         const allPrices = tempPrices.data.filter((price) => price.product == product.id);
-    //         priceId = allPrices[0].id;
-    //     }
+            /* finding out all the prices available */
+            const tempPrices = await stripe.prices.list();
+            const allPrices = tempPrices.data.filter((price) => price.product == product.id);
+            priceId = allPrices[0].id;
+        }
 
-    //     /* creating payment session */
-    //     this.createPaymentSession(req, res, priceId, fromMobile);
+        /* creating payment session */
+        let session = await this.createPaymentSession(req, res, priceId, fromMobile, invoiceId, companyId);
 
-    // } catch (error) {
-    //     res.send(error)
-    // }
-
-    const createdPdf = pdf.createPdf("output.pdf", "Joy Bhattacherjee", "Pixel Consultancy", "ABCD_1234",'http://google.com/');
-    res.send("dd")
-    // res.sendFile(htmlFile)
-
+        if (fromMobile == false) {
+            return session;
+        }
+    } catch (error) {
+        if (fromMobile == false) {
+            return session;
+        }
+    }
 }
 
 /* Create payment session */
-exports.createPaymentSession = async (req, res, priceId, fromMobile) => {
+exports.createPaymentSession = async (req, res, priceId, fromMobile, invoiceId, companyId) => {
+    /** Encrypting invoice id */
+    const encryptedInvId = cryptoAlgorithm.encrypt(`${invoiceId}`);
+    /** Encrypting company id */
+    const encryptedCompanyId = cryptoAlgorithm.encrypt(`${companyId}`);
+
     /* base url */
     const baseUrl = config.baseUrl;
     /* endpoint */
-    const addedEndpoint = endpoint + "/success?session_id={CHECKOUT_SESSION_ID}";
+    const addedEndpoint = endpoint + `/success?invoice=${encryptedInvId}&company=${encryptedCompanyId}&session_id={CHECKOUT_SESSION_ID}`;
     /* success url - redirect url */
     let successUrl = baseUrl + addedEndpoint;
 
@@ -509,52 +517,94 @@ exports.createPaymentSession = async (req, res, priceId, fromMobile) => {
                 ],
                 mode: 'payment',
             });
-            res.send(session);
+            // console.log(session);
+            return session;
         } catch (error) {
-            res.send(error);
+            console.log(error);
+            return null;
         }
     }
 }
 
-// /* Create payment link */
-// exports.paymentLink = async (req, res) => {
-//     const paymentLink = await stripe.paymentLinks.create({
-//         line_items: [
-//             {
-//                 price: 'price_1N16g7HI77ODInZemUykmZH5',
-//                 quantity: 1,
-//             },
-//         ],
-//         after_completion: {
-//             type: "redirect",
-//             redirect: {
-//                 "url": `http://localhost:8081/api/v1/payments/verify-link`
-//             }
-//         }
-//     });
-//     res.send(paymentLink);
-// }
-
-// /* verify payment */
-// exports.verifyPayment = async (req, res) => {
-//     // var session_id = req.query.mysessionid;
-//     // res.send(`<html><body><h1>Thanks for your order! ${session_id}</h1></body></html>`);
-//     const session = await stripe.checkout.sessions.create({
-//         success_url: "http://localhost:8081/api/v1/payments/success",
-//         success_url: "http://localhost:8081/api/v1/payments/success?session_id={CHECKOUT_SESSION_ID}",
-//         line_items: [
-//             { price: 'price_1N16g7HI77ODInZemUykmZH5', quantity: 2 },
-//         ],
-//         mode: 'payment',
-//         // other options...,
-//     });
-//     res.send(session);
-// }
-
+/** API for validate the success payment */
 exports.success = async (req, res) => {
-    const session = await stripe.checkout.sessions.retrieve(req.query.session_id);
+    /** Retrieving invoice id from url */
+    const invoiceId = cryptoAlgorithm.decrypt("U2FsdGVkX19RCvAQKCRE1FAaUQ30vN0u5rlbf/kPW7A=");
 
-    const customer = await stripe.customers.retrieve(session.customer);
+    /** Retrieving company id from url */
+    const company = cryptoAlgorithm.decrypt(req.query.company);
 
-    res.send(`<html><body><h1>Thanks for your order, ${customer.name}!</h1></body></html>`);
+    /** Invoice details */
+    let invoiceDetails = {};
+
+    /** Company details */
+    let companyDetails = {};
+
+    /** Fetching all invoice details from invoice table */
+    try {
+        invoiceDetails = await Invoices.findByPk(parseInt(invoiceId));
+
+        /** Retrieving session based on session id */
+        const session = await stripe.checkout.sessions.retrieve(req.query.session_id);
+
+        /** Stripe customer details */
+        let stripeCustomerDetails = {};
+
+        /** Customer email */
+        let customerEmail;
+
+        /** Customer details */
+        let customerDetails;
+
+        /** Payment id */
+        let paymentId = session.payment_intent;
+
+        /** Transaction id */
+        let transactionId = "";
+
+        /** Retrieving customer details from customer id */
+        try {
+            stripeCustomerDetails = await stripe.customers.retrieve(session.customer);
+            customerEmail = stripeCustomerDetails.email;
+        } catch (error) { console.log(error); }
+
+        if (customerEmail) {
+            /** When customer email is not null */
+            /** Finding customer details */
+            const allCustomers = await Customer.findAll({ where: { email: customerEmail } });
+            /** Finding customer details - first customer */
+            customerDetails = allCustomers[0];
+
+            /** Updating invoice as paid */
+            const updatedInvoice = await Invoices.update({ paid: true }, { where: { billedToEmailID: customerEmail, companyId: company, id: invoiceId } });
+
+            try {
+                /** Fetching transaction id */
+                const verifyData = await stripe.paymentIntents.retrieve(paymentId);
+
+                /** Availing transaction id */
+                transactionId = verifyData.charges.data[0].balance_transaction;
+
+                /** Transaction object */
+                const transactionObject = {
+                    invoiceId: parseInt(invoiceId),
+                    companyId: parseInt(company),
+                    transactionId: transactionId,
+                    paymentId: paymentId,
+                    customerId: customerDetails.id,
+                    amount: invoiceDetails.invoiceValue,
+                    status: true,
+                    paymentMethod: "Stripe"
+                }
+
+                console.log(transactionObject);
+
+                /** Adding in transaction table */
+                await Transactions.create(transactionObject);
+
+                res.send(success.show(invoiceId, customerDetails.name));
+
+            } catch (error) { console.log(error); res.send("Payment cancelled"); }
+        }
+    } catch (error) { }
 }

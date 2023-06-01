@@ -43,6 +43,7 @@ const multer = require("multer");
 const multerS3 = require('multer-s3');
 
 const mail = require('../commons/send.email');
+const Payment = require('./payment.controller');
 
 // Initializing dropbox class
 const dbx = new Dropbox({ accessToken: Config.dropboxToken, fetch: fetch });
@@ -186,41 +187,71 @@ exports.uploadInvoiceSheet = async (req, res) => {
                 /* Invoice number */
                 const invoiceNumber = formattedJson.invoiceNumber;
 
+                /** Customer available with this email */
+                let customer = null;
+
+                /** All customers available with this email */
+                const allCustomers = await Customers.findAll({
+                    where: { email: formattedJson.billedToEmailID }
+                });
+
+                /** Checking if customers are not empty - take first customer */
+                if (allCustomers.length != 0) {
+                    customer = allCustomers[0];
+                }
+
+                /** Created pdf name */
+                let pdfName = null;
+
+                /** Create pdf path */
+                let createdPdfPath = null;
+
+                /** Created pdf content */
+                let pdfFile = null;
+
+                /** Created payment link */
+                let stripeLink = "";
+
+                if (customer != null) {
+                    /** Creating UNPAID pdf for this customer */
+                    /** PDF name */
+                    pdfName = `${customer.name}-${Date.now()}.pdf`;
+
+                    /** Creating pdf and extracting path */
+                    createdPdfPath = await pdf.createPdf(pdfName, customer.name, companyName, invoiceNumber, 'http://google.com/');
+
+                    /** Attaching unpaid pdf name in the json */
+                    formattedJson.unpaidPdf = pdfName;
+                }
+
                 try {
                     // Check this particular invoice id present in the database or not
                     let availableInvoices = await Invoices.findAll({ where: { invoiceNumber: formattedJson.invoiceNumber, companyId: req.body.companyId } });
-                    if (availableInvoices.length == 1) {
+                    if (availableInvoices.length != 0) {
                         // Invoices available to update
                         await Invoices.update(formattedJson, {
-                            where: { invoiceNumber: formattedJson.invoiceNumber }
-                        });
-                        /* finding customers with the email */
-                        const customers = await Customers.findAll({
-                            where: { email: formattedJson.billedToEmailID }
+                            where: { invoiceNumber: formattedJson.invoiceNumber, paid: false }
                         });
 
-                        if (customers.length != 0) {
-                            const customer = customers[0];
+                        if (customer) {
+                            /** Attaching invoice id */
+                            formattedJson.invoiceId = availableInvoices[0].id;
+
+                            /** Stripe payment link */
+                            stripeLink = await this.createStripePaymentLink(formattedJson, customer);
+
+                            /** Extracting customer push token */
                             const pushToken = customer.pushToken;
 
-                            /* Sending email to respective customer - Updating invoices */
-                            /* Creating attachment PDF */
-                            /* PDF name */
-                            const pdfName = `${customer.name}-${Date.now()}.pdf`;
-                            const createdPdfPath = await pdf.createPdf(pdfName, customer.name, companyName, invoiceNumber, 'http://google.com/');
-
-                            /* Attachment file */
-                            // const attachmentFilePath = createdPdfPath;
-                            console.log(createdPdfPath);
-                            const file = fs.readFileSync(createdPdfPath);
-                            // const file = createdPdf;
+                            /** Created pdf file content */
+                            pdfFile = fs.readFileSync(createdPdfPath);
 
                             /* Update invoice mail subject */
                             const updateInvoiceMailSubject = `Invoice ${formattedJson.invoiceNumber} updated`;
                             /* Update invoice mail text */
-                            const updateInvoiceMailText = `Hi, ${formattedJson.billedToName} we have updated your previous invoice ${formattedJson.invoiceNumber}`;
+                            const updateInvoiceMailText = `Hi, ${formattedJson.billedToName} we have updated your previous invoice ${formattedJson.invoiceNumber}\n\nThis is the payment link: ${stripeLink}`;
                             /* Sending mail to the customers */
-                            mail.sendMail(updateInvoiceMailSubject, updateInvoiceMailText, file, formattedJson.billedToEmailID);
+                            mail.sendMail(updateInvoiceMailSubject, updateInvoiceMailText, pdfFile, formattedJson.billedToEmailID);
 
                             /* sending notification to the eligible customers */
                             /* notification title */
@@ -230,7 +261,6 @@ exports.uploadInvoiceSheet = async (req, res) => {
                             /* route */
                             const notificationRoute = "/invoices";
 
-
                             if (pushToken != null) {
                                 await Notification.sendNotification(notificationTitle, notificationBody, notificationRoute, [pushToken]);
                             }
@@ -239,31 +269,35 @@ exports.uploadInvoiceSheet = async (req, res) => {
                     else {
                         // No invoices available to update
                         // Creating the invoice data in the invoice table
-                        await Invoices.create(formattedJson);
+                        const createdInvoice = await Invoices.create(formattedJson);
 
-                        /* sending email to respective customer - Creating invoices */
-                        /* create invoice mail subject */
-                        const createInvoiceMailSubject = `Invoice ${formattedJson.invoiceNumber} created`;
-                        /* create invoice mail text */
-                        const createInvoiceMailText = `Hi, ${formattedJson.billedToName} we have created a new invoice ${formattedJson.invoiceNumber}`;
-                        /* Sending mail to the customers */
-                        mail.sendMail(createInvoiceMailSubject, createInvoiceMailText, formattedJson.billedToEmailID);
+                        if (customer) {
+                            /** Attaching invoice id */
+                            formattedJson.invoiceId = createdInvoice.id;
 
-                        /* sending notification to the eligible customers */
-                        /* notification title */
-                        const notificationTitle = `Invoice ${formattedJson.invoiceNumber} created`;
-                        /* noticiation body */
-                        const notificationBody = `The invoice value is ${formattedJson.invoiceValue}`;
-                        /* route */
-                        const notificationRoute = "/invoices";
+                            /** Stripe payment link */
+                            stripeLink = this.createStripePaymentLink(formattedJson, customer);
+                            console.log(stripeLink);
 
-                        /* finding customers with the email */
-                        const customers = await Customers.findAll({
-                            where: { email: formattedJson.billedToEmailID }
-                        });
+                            /** Created pdf file content */
+                            pdfFile = fs.readFileSync(createdPdfPath);
 
-                        if (customers.length != 0) {
-                            const customer = customers[0];
+                            /* sending email to respective customer - Creating invoices */
+                            /* create invoice mail subject */
+                            const createInvoiceMailSubject = `Invoice ${formattedJson.invoiceNumber} created`;
+                            /* create invoice mail text */
+                            const createInvoiceMailText = `Hi, ${formattedJson.billedToName} we have created a new invoice ${formattedJson.invoiceNumber}\n\nThis is the payment link: ${stripeLink}`;
+                            /* Sending mail to the customers */
+                            mail.sendMail(createInvoiceMailSubject, createInvoiceMailText, pdfFile, formattedJson.billedToEmailID);
+
+                            /* sending notification to the eligible customers */
+                            /* notification title */
+                            const notificationTitle = `Invoice ${formattedJson.invoiceNumber} created`;
+                            /* noticiation body */
+                            const notificationBody = `The invoice value is ${formattedJson.invoiceValue}`;
+                            /* route */
+                            const notificationRoute = "/invoices";
+
                             const pushToken = customer.pushToken;
                             if (pushToken != null) {
                                 await Notification.sendNotification(notificationTitle, notificationBody, notificationRoute, [pushToken]);
@@ -278,6 +312,34 @@ exports.uploadInvoiceSheet = async (req, res) => {
         res.status(200).send(allExcelFormattedData);
     } catch (error) {
         res.send(error.message ?? "We have faced some issue, please try again later");
+    }
+}
+
+/** Creating stripe payment link to complete the payment */
+exports.createStripePaymentLink = async (invoice, customer) => {
+    let req = {};
+    let res = {};
+
+    /** Preparing request body */
+    req.body = {
+        invoiceNumber: invoice.invoiceNumber,
+        invoiceId: invoice.invoiceId,
+        invoiceAmount: invoice.invoiceValue,
+        invoiceCurrency: invoice.invoiceCurrency,
+        companyId: invoice.companyId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerPhone: customer.phone,
+        customerAddress: customer.address,
+        fromMobile: false
+    };
+
+    try {
+        const response = await Payment.createInvoice(req, res);
+        return response.url;
+    } catch (error) {
+        console.log(error);
+        return error;
     }
 }
 

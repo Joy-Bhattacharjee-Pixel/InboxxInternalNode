@@ -22,7 +22,8 @@ exports.sendMail = async (mailSubject, mailText, attachment, emails) => {
             to: emails, // list of receivers
             subject: mailSubject, // Subject line
             text: mailText, // plain text body
-            attachments: attachment != null ? [{ 'filename': 'attachment.pdf', 'content': attachment }] : null
+            attachments: attachment != null ? [{ 'filename': 'attachment.pdf', 'content': attachment }] : null,
+            
         });
         console.log("Message sent: %s", info.messageId);
 
