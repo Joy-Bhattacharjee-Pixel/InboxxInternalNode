@@ -24,6 +24,7 @@
     "nodemailer": "^6.9.1",
     "nodemon": "^2.0.22",
     "paypal-rest-sdk": "^1.8.1",
+    "pdfkit": "^0.13.0",
     "sequelize": "^6.30.0",
     "stripe": "^11.17.0",
     "xlsx": "^0.18.5"

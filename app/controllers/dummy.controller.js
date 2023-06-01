@@ -119,9 +119,9 @@ exports.createPayment = async (req, res) => {
     //     { customer: customer.id },
     //     { apiVersion: '2022-11-15' }
     // );
-  
-  
-  
+
+
+
     // // Payment intent
     // const paymentIntent = await stripe.paymentIntents.create({
     //     amount: 1099,
@@ -181,7 +181,7 @@ exports.createPayment = async (req, res) => {
 
 
 
-    
+
     // const newcustomer = await stripe.customers.create({
     //     email:"joy@gmail.com",
     //     description: 'My First Test Customer (created for API docs at https://www.stripe.com/docs/api)',
@@ -194,7 +194,7 @@ exports.createPayment = async (req, res) => {
     //     { customer: customer.id },
     //     { apiVersion: '2022-08-01' }
     //   );
-      
+
     //   const paymentIntent = await stripe.paymentIntents.create({
     //     amount: 5099,
     //     currency: 'usd',
@@ -241,4 +241,19 @@ const paypal = require('paypal-rest-sdk');
 const mail = require('../commons/send.email');
 exports.paypalPayments = async (req, res) => {
     mail.sendMail;
+}
+
+const email = require("../commons/send.email");
+
+/* sending test email */
+exports.sendEmail = async (req, res) => {
+    const emails = ["joy.bhattacharjee@pixelconsultancy.in", "surajit@pixelconsultancy.in"];
+    const mailSubject = "This is for testing CRON";
+    const mailText = "This is the mail text for testing CRON from Digital Ocean";
+    try {
+        await email.sendMail(mailSubject, mailText, null, emails);
+        res.send("Emails send successfully");
+    } catch (error) {
+        res.send(error || "Error");
+    }
 }

@@ -23,6 +23,8 @@ const { Op } = require("sequelize");
 /* importing pagination module */
 const pagination = require('../commons/pagination');
 
+/* Importing create pdf module */
+const pdf = require('../commons/create.pdf');
 
 const Invoices = db.invoices;
 const Customers = db.customers;
@@ -176,6 +178,14 @@ exports.uploadInvoiceSheet = async (req, res) => {
                 };
                 // Pushing all data into a single array
                 allExcelFormattedData.push(formattedJson);
+                /* Getting company from company id */
+                const company = await Companies.findByPk(req.body.companyId);
+
+                /* Company name */
+                const companyName = company.name;
+                /* Invoice number */
+                const invoiceNumber = formattedJson.invoiceNumber;
+
                 try {
                     // Check this particular invoice id present in the database or not
                     let availableInvoices = await Invoices.findAll({ where: { invoiceNumber: formattedJson.invoiceNumber, companyId: req.body.companyId } });
@@ -184,23 +194,6 @@ exports.uploadInvoiceSheet = async (req, res) => {
                         await Invoices.update(formattedJson, {
                             where: { invoiceNumber: formattedJson.invoiceNumber }
                         });
-
-                        /* Sending email to respective customer - Updating invoices */
-                        /* Update invoice mail subject */
-                        const updateInvoiceMailSubject = `Invoice ${formattedJson.invoiceNumber} updated`;
-                        /* Update invoice mail text */
-                        const updateInvoiceMailText = `Hi, ${formattedJson.billedToName} we have updated your previous invoice ${formattedJson.invoiceNumber}`;
-                        /* Sending mail to the customers */
-                        mail.sendMail(updateInvoiceMailSubject, updateInvoiceMailText, formattedJson.billedToEmailID);
-
-                        /* sending notification to the eligible customers */
-                        /* notification title */
-                        const notificationTitle = `Invoice ${formattedJson.invoiceNumber} updated`;
-                        /* noticiation body */
-                        const notificationBody = `Now the invoice value is ${formattedJson.invoiceValue}`;
-                        /* route */
-                        const notificationRoute = "/invoices";
-
                         /* finding customers with the email */
                         const customers = await Customers.findAll({
                             where: { email: formattedJson.billedToEmailID }
@@ -209,6 +202,35 @@ exports.uploadInvoiceSheet = async (req, res) => {
                         if (customers.length != 0) {
                             const customer = customers[0];
                             const pushToken = customer.pushToken;
+
+                            /* Sending email to respective customer - Updating invoices */
+                            /* Creating attachment PDF */
+                            /* PDF name */
+                            const pdfName = `${customer.name}-${Date.now()}.pdf`;
+                            const createdPdfPath = await pdf.createPdf(pdfName, customer.name, companyName, invoiceNumber, 'http://google.com/');
+
+                            /* Attachment file */
+                            // const attachmentFilePath = createdPdfPath;
+                            console.log(createdPdfPath);
+                            const file = fs.readFileSync(createdPdfPath);
+                            // const file = createdPdf;
+
+                            /* Update invoice mail subject */
+                            const updateInvoiceMailSubject = `Invoice ${formattedJson.invoiceNumber} updated`;
+                            /* Update invoice mail text */
+                            const updateInvoiceMailText = `Hi, ${formattedJson.billedToName} we have updated your previous invoice ${formattedJson.invoiceNumber}`;
+                            /* Sending mail to the customers */
+                            mail.sendMail(updateInvoiceMailSubject, updateInvoiceMailText, file, formattedJson.billedToEmailID);
+
+                            /* sending notification to the eligible customers */
+                            /* notification title */
+                            const notificationTitle = `Invoice ${formattedJson.invoiceNumber} updated`;
+                            /* noticiation body */
+                            const notificationBody = `Now the invoice value is ${formattedJson.invoiceValue}`;
+                            /* route */
+                            const notificationRoute = "/invoices";
+
+
                             if (pushToken != null) {
                                 await Notification.sendNotification(notificationTitle, notificationBody, notificationRoute, [pushToken]);
                             }

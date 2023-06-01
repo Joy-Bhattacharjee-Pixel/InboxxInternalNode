@@ -46,6 +46,18 @@ module.exports = app => {
         check("address", "address is required").isLength({ min: 1, max: 50 }),
     ], Payment.verifyPaymentId);
 
+    /* create payment route */
+    router.post("/payment-link", Payment.createInvoice);
+
+    // router.get("/verify-link", Payment.verifyPayment);
+
+    router.get("/success", Payment.success);
+
+    /* create invoice in stripe dashboard */
+    // router.post("/create-invoice", Payment.createInvoice);
+
+
+
     app.use(endpoint, router);
 
 }

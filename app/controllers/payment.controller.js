@@ -9,6 +9,16 @@ const Invoices = db.invoices;
 /* Importing transaction table */
 const Transactions = db.transactions;
 
+/* Importing create pdf module */
+const pdf = require('../commons/create.pdf');
+
+const path =  require('path');
+
+
+/* importing html file */
+const htmlFile = path.resolve(path.dirname('')) + "/app/commons/index.html"
+
+
 /* Adding keys to the payment keys table based on company id */
 exports.addKeys = async (req, res) => {
     /* Validating the request body */
@@ -151,6 +161,9 @@ const config = require('../configs/config');
 /* Initializing stripe with stripe key */
 const stripe = require('stripe')(config.stripeTestKey);
 
+/* Endpoints */
+const endpoint = require("../endpoints/endpoints").payments;
+
 /* Creating STRIPE payment intent and sending to customer - STEP 1 */
 exports.createStripePaymentIntent = async (req, res) => {
     /* Sent request body */
@@ -163,6 +176,8 @@ exports.createStripePaymentIntent = async (req, res) => {
     const customerPhone = body.phone;
     /* Send customer address */
     const customerAddress = body.address;
+    /* Send currency - usd default*/
+    const currency = body.currency || "usd";
     /* Stripe API version object*/
     const apiVersion = { apiVersion: '2022-08-01' };
 
@@ -205,14 +220,15 @@ exports.createStripePaymentIntent = async (req, res) => {
     /* Invoice amount */
     const invoiceAmount = req.body.amount;
     /* Currency - usd default  */
-    const currency = "usd";
+    // const currency = "usd";
     /* Shipping address object */
     const shippingObject = {
         name: customerName, /* shipping - customer name */
         address: {
             /* only line1 is providing */
             line1: customerAddress, /* customer address */
-            country: 'US'
+            country: 'US',
+            postal_code: "99950"
         }
     };
     try {
@@ -233,7 +249,7 @@ exports.createStripePaymentIntent = async (req, res) => {
                 // 'eps',
                 // 'afterpay_clearpay',
                 // 'klarna',
-                // 'us_bank_account',
+                'us_bank_account',
             ],
         });
         /* Object sending to customer */
@@ -297,7 +313,7 @@ exports.verifyPaymentId = async (req, res) => {
                 console.log(customerEmail);
 
                 /* Performing update invoice query */
-                await Invoices.update(updateInvBody, { where: { companyId: companyId, billedToEmailID: customerEmail} });
+                await Invoices.update(updateInvBody, { where: { companyId: companyId, billedToEmailID: customerEmail } });
             }
             else {
                 /* When paying for single invoice */
@@ -310,7 +326,7 @@ exports.verifyPaymentId = async (req, res) => {
                 await Invoices.update(updateInvBody, { where: { companyId: companyId, billedToEmailID: customerEmail, id: singleInvId } });
             }
 
-          
+
             for (let index = 0; index < invoiceIds.length; index++) {
                 const invoiceId = invoiceIds[index];
                 const invoiceAmount = invoicesAmount[index];
@@ -358,4 +374,187 @@ exports.verifyPaymentId = async (req, res) => {
             verifiedObject: null
         })
     }
+}
+
+/* Create product - Invoice number */
+exports.createInvoice = async (req, res) => {
+    /* required - invoice number + invoice id + invoice amount + invoice currency + 
+    company id + customer name + customer email + customer phone + customer address + from mobile*/
+
+    /* request body */
+    const body = req.body;
+    /* invoice number */
+    const invoiceNumber = body.invoiceNumber;
+    /* invoice id */
+    const invoiceId = body.invoiceId;
+    /* invoice amount */
+    const invoiceAmount = body.invoiceAmount;
+    /* invoice currency */
+    const invoiceCurrency = body.invoiceCurrency;
+    /* company id */
+    const companyId = body.companyId;
+    /* customer name */
+    const customerName = body.customerName;
+    /* customer email */
+    const customerEmail = body.customerEmail;
+    /* customer phone */
+    const customerPhone = body.customerPhone;
+    /* customer address */
+    const customerAddress = body.customerAddress;
+    /* from mobile */
+    const fromMobile = body.fromMobile;
+
+    /* product id */
+    let productID = "";
+    /* product price */
+    let productPrice = "";
+    /* price id */
+    let priceId = "";
+
+    /* created invoice name */
+    const createdInvoiceName = `${invoiceNumber}_${invoiceId}_${companyId}`;
+
+    // try {
+    //     /* checking if any products available with this invoice name or not */
+    //     const tempProducts = await stripe.products.list();
+
+    //     /* all products available */
+    //     const products = tempProducts.data;
+
+    //     /* finding out all the products with this name */
+    //     const previousProduct = products.filter((item) => item.name == createdInvoiceName);
+
+    //     if (previousProduct.length == 0) {
+    //         /* no products found */
+    //         /* creating invoice with name as - invoiceNumber_invoiceId_companyId*/
+    //         try {
+    //             const product = await stripe.products.create({
+    //                 name: createdInvoiceName,
+    //                 description: `Invoice created from ${companyId} with Invoice number ${invoiceNumber} & Invoice id ${invoiceId}`
+    //             });
+    //             /* adding productID & price */
+    //             productID = product.id;
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+
+    //         /* creating price for this product */
+    //         try {
+    //             const price = await stripe.prices.create({
+    //                 unit_amount: invoiceAmount,
+    //                 currency: invoiceCurrency,
+    //                 product: productID,
+    //             });
+    //             productPrice = price.unit_amount;
+    //             priceId = price.id;
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+    //     }
+    //     else {
+    //         /* products found */
+    //         const product = products[0];
+    //         productID = product.id;
+    //         productPrice = product.default_price;
+
+    //         /* finding out all the prices available */
+    //         const tempPrices = await stripe.prices.list();
+    //         const allPrices = tempPrices.data.filter((price) => price.product == product.id);
+    //         priceId = allPrices[0].id;
+    //     }
+
+    //     /* creating payment session */
+    //     this.createPaymentSession(req, res, priceId, fromMobile);
+
+    // } catch (error) {
+    //     res.send(error)
+    // }
+
+    const createdPdf = pdf.createPdf("output.pdf", "Joy Bhattacherjee", "Pixel Consultancy", "ABCD_1234",'http://google.com/');
+    res.send("dd")
+    // res.sendFile(htmlFile)
+
+}
+
+/* Create payment session */
+exports.createPaymentSession = async (req, res, priceId, fromMobile) => {
+    /* base url */
+    const baseUrl = config.baseUrl;
+    /* endpoint */
+    const addedEndpoint = endpoint + "/success?session_id={CHECKOUT_SESSION_ID}";
+    /* success url - redirect url */
+    let successUrl = baseUrl + addedEndpoint;
+
+    /* if from mobile then no success url */
+    if (fromMobile == true) {
+        try {
+            const session = await stripe.checkout.sessions.create({
+                success_url: baseUrl,
+                line_items: [
+                    { price: priceId, quantity: 1 }
+                ],
+                mode: 'payment',
+            });
+            res.send(session);
+        } catch (error) {
+            res.send(error);
+        }
+    }
+    else {
+        try {
+            const session = await stripe.checkout.sessions.create({
+                success_url: successUrl,
+                line_items: [
+                    { price: priceId, quantity: 1 }
+                ],
+                mode: 'payment',
+            });
+            res.send(session);
+        } catch (error) {
+            res.send(error);
+        }
+    }
+}
+
+// /* Create payment link */
+// exports.paymentLink = async (req, res) => {
+//     const paymentLink = await stripe.paymentLinks.create({
+//         line_items: [
+//             {
+//                 price: 'price_1N16g7HI77ODInZemUykmZH5',
+//                 quantity: 1,
+//             },
+//         ],
+//         after_completion: {
+//             type: "redirect",
+//             redirect: {
+//                 "url": `http://localhost:8081/api/v1/payments/verify-link`
+//             }
+//         }
+//     });
+//     res.send(paymentLink);
+// }
+
+// /* verify payment */
+// exports.verifyPayment = async (req, res) => {
+//     // var session_id = req.query.mysessionid;
+//     // res.send(`<html><body><h1>Thanks for your order! ${session_id}</h1></body></html>`);
+//     const session = await stripe.checkout.sessions.create({
+//         success_url: "http://localhost:8081/api/v1/payments/success",
+//         success_url: "http://localhost:8081/api/v1/payments/success?session_id={CHECKOUT_SESSION_ID}",
+//         line_items: [
+//             { price: 'price_1N16g7HI77ODInZemUykmZH5', quantity: 2 },
+//         ],
+//         mode: 'payment',
+//         // other options...,
+//     });
+//     res.send(session);
+// }
+
+exports.success = async (req, res) => {
+    const session = await stripe.checkout.sessions.retrieve(req.query.session_id);
+
+    const customer = await stripe.customers.retrieve(session.customer);
+
+    res.send(`<html><body><h1>Thanks for your order, ${customer.name}!</h1></body></html>`);
 }
