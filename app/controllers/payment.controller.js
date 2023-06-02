@@ -415,7 +415,7 @@ exports.createInvoice = async (req, res) => {
     let priceId = "";
 
     /* created invoice name */
-    const createdInvoiceName = `${invoiceNumber}_${invoiceId}_${companyId}`;
+    const createdInvoiceName = `${invoiceNumber}-${Date.now()}`;
 
     try {
         /* checking if any products available with this invoice name or not */
@@ -427,45 +427,32 @@ exports.createInvoice = async (req, res) => {
         /* finding out all the products with this name */
         const previousProduct = products.filter((item) => item.name == createdInvoiceName);
 
-        if (previousProduct.length == 0) {
-            /* no products found */
-            /* creating invoice with name as - invoiceNumber_invoiceId_companyId*/
-            try {
-                const product = await stripe.products.create({
-                    name: createdInvoiceName,
-                    description: `Invoice created from ${companyId} with Invoice number ${invoiceNumber} & Invoice id ${invoiceId}`
-                });
-                /* adding productID & price */
-                productID = product.id;
-            } catch (error) {
-                console.log(error);
-            }
-
-            /* creating price for this product */
-            try {
-                const price = await stripe.prices.create({
-                    unit_amount: invoiceAmount,
-                    currency: invoiceCurrency,
-                    product: productID,
-                });
-                productPrice = price.unit_amount;
-                priceId = price.id;
-            } catch (error) {
-                console.log(error);
-            }
-        }
-        else {
-            /* products found */
-            const product = products[0];
+        /* no products found */
+        /* creating invoice with name as - invoiceNumber_invoiceId_companyId*/
+        try {
+            const product = await stripe.products.create({
+                name: createdInvoiceName,
+                description: `Invoice created from ${companyId} with Invoice number ${invoiceNumber} & Invoice id ${invoiceId}`
+            });
+            /* adding productID & price */
             productID = product.id;
-            productPrice = product.default_price;
-
-            /* finding out all the prices available */
-            const tempPrices = await stripe.prices.list();
-            const allPrices = tempPrices.data.filter((price) => price.product == product.id);
-            priceId = allPrices[0].id;
+        } catch (error) {
+            console.log(error);
         }
 
+        /* creating price for this product */
+        try {
+            const price = await stripe.prices.create({
+                unit_amount: invoiceAmount,
+                currency: invoiceCurrency,
+                product: productID,
+            });
+            productPrice = price.unit_amount;
+            priceId = price.id;
+        } catch (error) {
+            console.log(error);
+        }
+        
         /* creating payment session */
         let session = await this.createPaymentSession(req, res, priceId, fromMobile, invoiceId, companyId);
 

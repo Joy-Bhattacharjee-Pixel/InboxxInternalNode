@@ -14,8 +14,9 @@ module.exports = app => {
     // router.post("/uploadSheet", upload.single("file"), Invoice.uploadCustomerSheet);
     // Uploading invoice sheet
     router.post("/uploadInvoiceSheet", upload.single("file"), Invoice.uploadInvoiceSheet);
+
     // router.post("/editInvoiceSheet", upload.single("file"), Invoice.editExcelSheet);
-    router.post("/space", upload.single("file"), Invoice.uploadToDigitOcean);
+    router.post("/space",  Invoice.uploadToDigitalOcean);
 
 
     /* Finding out all the invoices for a customer */

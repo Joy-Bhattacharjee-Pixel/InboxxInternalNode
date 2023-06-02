@@ -648,43 +648,74 @@ exports.searchInvoice = async (req, res) => {
 
 
 
-let space = new AWS.S3({
-    //Get the endpoint from the DO website for your space
-    endpoint: AWS.Endpoint("nyc3.digitaloceanspaces.com"),
-    useAccelerateEndpoint: false,
-    accessKeyId: "DO00XZUXTDDGPVAC2V4F",
-    secretAccessKey: "uOxBk3Qksr5qoOjIqBlIggp7J4QHQ49lwoExBgoqsFM"
+// let space = new AWS.S3({
+//     //Get the endpoint from the DO website for your space
+//     endpoint: AWS.Endpoint("sgp1.digitaloceanspaces.com"),
+//     useAccelerateEndpoint: false,
+//     accessKeyId: "DO00QYENYQBU8GTLRZ69",
+//     secretAccessKey: "ytdvU9D7vYkZxCRNbhnr6TANzOcdvS1CRiQkuPPASu8"
+// });
+
+// Name of your bucket here
+const BucketName = "inboxxspace";
+
+// // Upload invoice to the Digital Ocean Space
+// exports.uploadToDigitOcean = async (req, res) => {
+
+//     // Uploaded file path
+//     const filePath = path.resolve(path.dirname('')) + "/resources/static/assets/uploads/" + req.file.filename;
+//     // Reading the file from the app folder
+//     const file = fs.readFileSync(filePath);
+
+
+//     let uploadParameters = {
+//         Bucket: BucketName,
+//         Body: file,
+//         ACL: 'public-read',
+//         Key: req.file.filename
+//     };
+
+//     space.upload(uploadParameters, function (error, data) {
+//         if (error) {
+//             console.error(error);
+//             res.send(error);
+//             return;
+//         }
+//         res.sendStatus(200);
+//     });
+// }
+
+// Load dependencies
+const aws = require('aws-sdk');
+
+// Set S3 endpoint to DigitalOcean Spaces
+const spacesEndpoint = new aws.Endpoint('sgp1.digitaloceanspaces.com');
+const s3 = new aws.S3({
+    endpoint: spacesEndpoint,
+    accessKeyId: "DO00QYENYQBU8GTLRZ69",
+    secretAccessKey: "ytdvU9D7vYkZxCRNbhnr6TANzOcdvS1CRiQkuPPASu8"
 });
 
-//Name of your bucket here
-const BucketName = "inboxx";
-
-// Upload invoice to the Digital Ocean Space
-exports.uploadToDigitOcean = async (req, res) => {
-
-    // Uploaded file path
-    const filePath = path.resolve(path.dirname('')) + "/resources/static/assets/uploads/" + req.file.filename;
-    // Reading the file from the app folder
-    const file = fs.readFileSync(filePath);
-
-
-    let uploadParameters = {
-        Bucket: BucketName,
-        Body: file,
-        ACL: 'public-read',
-        Key: req.file.filename
-    };
-
-    space.upload(uploadParameters, function (error, data) {
-        if (error) {
-            console.error(error);
-            res.send(error);
-            return;
+// Change bucket property to your Space name
+const upload = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: 'inboxxspace',
+        acl: 'public-read',
+        key: (request, file, cb) => {
+            console.log(file);
+            cb(null, file.originalname);
         }
-        res.sendStatus(200);
+    })
+}).array('upload', 1);
+
+exports.uploadToDigitalOcean = async (request, response) => {
+    upload(request, response, function (error) {
+        if (error) {
+            console.log(error);
+            return response.redirect("/error");
+        }
+        console.log('File uploaded successfully.');
+        response.send("success");
     });
-
-
-    // res.send(AWS.config)
-
 }
