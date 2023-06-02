@@ -29,6 +29,7 @@ const pdf = require('../commons/create.pdf');
 const Invoices = db.invoices;
 const Customers = db.customers;
 const Companies = db.companies;
+const Transactions = db.transactions;
 
 /* importing notification controller */
 const Notification = require('../controllers/notification.controller');
@@ -541,6 +542,7 @@ exports.invoices = async (req, res) => {
 
         try {
             const response = await Invoices.findAll({
+                include: ["transactions"],
                 where: { companyId: req.body.companyId, billedToEmailID: email, paid: paid }
             });
             res.send(response);
@@ -645,6 +647,29 @@ exports.searchInvoice = async (req, res) => {
 }
 
 
+/** Fetching invoice history data */
+exports.invoiceHistory = async (req, res) => {
+    /** Validating customer id */
+    if (!req.query.id) {
+        res.status(400).send({
+            status: 0,
+            message: "Customer Id required",
+            history: null
+        });
+    }
+    /** Customer id coming in query */
+    const customerId = req.query.id;
+    try {
+        /** Fetching all transaction from transaction table for this customer */
+        const transactions = await Transactions.findAll({
+            include: ["company", "invoice"],
+            where: { customerId: customerId }
+        });
+        res.send(transactions);
+    } catch (error) {
+        res.send(error)
+    }
+}
 
 
 
@@ -687,6 +712,7 @@ const BucketName = "inboxxspace";
 
 // Load dependencies
 const aws = require('aws-sdk');
+const transactionModel = require('../models/transaction.model');
 
 // Set S3 endpoint to DigitalOcean Spaces
 const spacesEndpoint = new aws.Endpoint('sgp1.digitaloceanspaces.com');
@@ -700,8 +726,7 @@ const s3 = new aws.S3({
 const upload = multer({
     storage: multerS3({
         s3: s3,
-        bucket: 'inboxxspace',
-        acl: 'public-read',
+        bucket: `${BucketName}/Excel_Invoice`,
         key: (request, file, cb) => {
             console.log(file);
             cb(null, file.originalname);

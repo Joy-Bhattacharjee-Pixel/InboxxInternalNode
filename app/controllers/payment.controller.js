@@ -452,7 +452,7 @@ exports.createInvoice = async (req, res) => {
         } catch (error) {
             console.log(error);
         }
-        
+
         /* creating payment session */
         let session = await this.createPaymentSession(req, res, priceId, fromMobile, invoiceId, companyId);
 
@@ -568,8 +568,8 @@ exports.success = async (req, res) => {
             /** Finding customer details - first customer */
             customerDetails = allCustomers[0];
 
-            /** Updating invoice as paid */
-            const updatedInvoice = await Invoices.update({ paid: true }, { where: { billedToEmailID: customerEmail, companyId: company, id: invoiceId } });
+            // /** Updating invoice as paid */
+            // const updatedInvoice = await Invoices.update({ paid: true }, { where: { billedToEmailID: customerEmail, companyId: company, id: invoiceId } });
 
             try {
                 /** Fetching transaction id */
@@ -590,10 +590,11 @@ exports.success = async (req, res) => {
                     paymentMethod: "Stripe"
                 }
 
-                console.log(transactionObject);
-
                 /** Adding in transaction table */
-                await Transactions.create(transactionObject);
+                const transId = await Transactions.create(transactionObject);
+
+                /** Updating invoice as paid */
+                const updatedInvoice = await Invoices.update({ paid: true, transactionId: transId.id }, { where: { billedToEmailID: customerEmail, companyId: company, id: invoiceId } });
 
                 res.send(success.show(res, invoiceId, customerDetails.name));
 

@@ -39,6 +39,14 @@ db.paymentKeys.belongsTo(db.companies, { foreignKey: "companyId", as: "company" 
 db.transactions.hasMany(db.invoices, { as: "invoices" });
 db.invoices.belongsTo(db.transactions, { foreignKey: "transactionId", as: "transaction" });
 
+/* Establishing a foreign key relation with transaction table and invoices */
+db.companies.hasMany(db.transactions, { as: "transactions" });
+db.transactions.belongsTo(db.companies, { foreignKey: "companyId", as: "company" });
+
+/* Establishing a foreign key relation with transaction table and invoices */
+db.invoices.hasMany(db.transactions, { as: "transactions" });
+db.transactions.belongsTo(db.invoices, { foreignKey: "invoiceId", as: "invoice" });
+
 
 // Exporting db
 module.exports = db;

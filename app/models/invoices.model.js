@@ -71,6 +71,13 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        transactionId: {
+            type: DataTypes.STRING,
+            references: {
+                model: "transactions",
+                key: "id"
+            }
+        }
     });
 
     return Invoices;

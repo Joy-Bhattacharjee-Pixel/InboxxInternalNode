@@ -16,7 +16,7 @@ module.exports = app => {
     router.post("/uploadInvoiceSheet", upload.single("file"), Invoice.uploadInvoiceSheet);
 
     // router.post("/editInvoiceSheet", upload.single("file"), Invoice.editExcelSheet);
-    router.post("/space",  Invoice.uploadToDigitalOcean);
+    router.post("/space", Invoice.uploadToDigitalOcean);
 
 
     /* Finding out all the invoices for a customer */
@@ -44,6 +44,9 @@ module.exports = app => {
         // check("customerName", "customerName is required").isLength({ min: 1, max: 50 }),
         // check("selectedStatus", "selectedStatus is required").isLength({ min: 1, max: 50 }),
     ], Invoice.searchInvoice);
+
+    /** Fetch transaction history for a customer */
+    router.get("/transaction/history", Invoice.invoiceHistory);
 
 
     // Using router with the endpoints
