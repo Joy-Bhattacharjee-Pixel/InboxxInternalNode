@@ -5,6 +5,7 @@ const cors = require('cors');
 // This is required for parsing body from POST
 app.use(cors());
 app.use(express.json());
+
 // Required for url encoding
 app.use(express.urlencoded({ extended: true }));
 // Importing db details
@@ -35,7 +36,7 @@ require("./app/routes/notification.route")(app); // Transaction route
 
 
 // Defining port
-const PORT = process.env.PORT || 8045;
+const PORT = process.env.PORT || 8081;
 // Listenning to port
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);

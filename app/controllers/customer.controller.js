@@ -93,9 +93,10 @@ exports.create = async (req, res) => {
         // If some errors present
         res.status(400).json(errors);
     }
+
     // Check if this email address & phone is already present in the customer table or not
     let availableCustomersWithEmail = await Customers.findAll({ where: { email: req.body.email } });
-    let availableCustomersWithPhone = await Customers.findAll({ where: { email: req.body.phone } });
+    let availableCustomersWithPhone = await Customers.findAll({ where: { phone: req.body.phone } });
 
     if (availableCustomersWithEmail.length == 0 && availableCustomersWithPhone.length == 0) {
         // Check if this email id is present in the invoice table or not

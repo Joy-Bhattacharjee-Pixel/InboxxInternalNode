@@ -673,46 +673,11 @@ exports.invoiceHistory = async (req, res) => {
 
 
 
-// let space = new AWS.S3({
-//     //Get the endpoint from the DO website for your space
-//     endpoint: AWS.Endpoint("sgp1.digitaloceanspaces.com"),
-//     useAccelerateEndpoint: false,
-//     accessKeyId: "DO00QYENYQBU8GTLRZ69",
-//     secretAccessKey: "ytdvU9D7vYkZxCRNbhnr6TANzOcdvS1CRiQkuPPASu8"
-// });
 
 // Name of your bucket here
 const BucketName = "inboxxspace";
-
-// // Upload invoice to the Digital Ocean Space
-// exports.uploadToDigitOcean = async (req, res) => {
-
-//     // Uploaded file path
-//     const filePath = path.resolve(path.dirname('')) + "/resources/static/assets/uploads/" + req.file.filename;
-//     // Reading the file from the app folder
-//     const file = fs.readFileSync(filePath);
-
-
-//     let uploadParameters = {
-//         Bucket: BucketName,
-//         Body: file,
-//         ACL: 'public-read',
-//         Key: req.file.filename
-//     };
-
-//     space.upload(uploadParameters, function (error, data) {
-//         if (error) {
-//             console.error(error);
-//             res.send(error);
-//             return;
-//         }
-//         res.sendStatus(200);
-//     });
-// }
-
 // Load dependencies
 const aws = require('aws-sdk');
-const transactionModel = require('../models/transaction.model');
 
 // Set S3 endpoint to DigitalOcean Spaces
 const spacesEndpoint = new aws.Endpoint('sgp1.digitaloceanspaces.com');
@@ -728,13 +693,13 @@ const upload = multer({
         s3: s3,
         bucket: `${BucketName}/Excel_Invoice`,
         key: (request, file, cb) => {
-            console.log(file);
             cb(null, file.originalname);
         }
     })
 }).array('upload', 1);
 
 exports.uploadToDigitalOcean = async (request, response) => {
+    console.log(request.body);
     upload(request, response, function (error) {
         if (error) {
             console.log(error);
