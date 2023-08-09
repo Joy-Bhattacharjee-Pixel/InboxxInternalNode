@@ -36,7 +36,7 @@ require("./app/routes/notification.route")(app); // Transaction route
 
 
 // Defining port
-const PORT = process.env.PORT || 8081;
+const PORT = process.env.PORT || 8021;
 // Listenning to port
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
