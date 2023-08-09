@@ -19,4 +19,4 @@ module.exports = app => {
     router.put("/update", bulletins.updateBulletin);
     
     app.use(endpoints.bulletins, router);
-}
+};
